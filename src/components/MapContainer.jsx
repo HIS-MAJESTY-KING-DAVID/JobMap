@@ -1,64 +1,83 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { fetchJobs } from '../services/JobService';
-
-// Fix for default marker icon
+import 'leaflet/dist/leaflet.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
+const defaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+L.Marker.prototype.options.icon = defaultIcon;
 
-const MapContainer = () => {
-    const mapRef = useRef(null);
-    const mapInstanceRef = useRef(null);
+function popupFor(job) {
+  const safeTitle = job.title.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  const safeCompany = job.company.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return `
+    <div class="job-popup">
+      <strong>${safeTitle}</strong>
+      <span>${safeCompany}</span>
+      <small>${job.location}</small>
+      <a href="${job.applyUrl}" target="_blank" rel="noopener noreferrer">View opening ↗</a>
+    </div>
+  `;
+}
 
-    useEffect(() => {
-        if (mapRef.current && !mapInstanceRef.current) {
-            // Initialize map
-            const map = L.map(mapRef.current).setView([4.0511, 9.7679], 13);
+export default function MapContainer({ jobs, selectedJobId, onSelectJob }) {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef(new Map());
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return undefined;
 
-            mapInstanceRef.current = map;
+    const markers = markersRef.current;
+    const map = L.map(mapRef.current, { zoomControl: false }).setView([4.0511, 9.7279], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+    mapInstanceRef.current = map;
 
-            // Load jobs
-            const loadJobs = async () => {
-                const jobs = await fetchJobs();
-                jobs.forEach(job => {
-                    const marker = L.marker([job.lat, job.lng]).addTo(map);
-                    marker.bindPopup(`
-                        <div class="p-2">
-                            <h3 class="font-bold text-lg">${job.company}</h3>
-                            <p class="text-sm font-semibold">${job.title}</p>
-                            <p class="text-xs text-gray-600 mb-2">${job.description}</p>
-                            <a href="${job.url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 text-sm hover:underline">
-                                Visit Website
-                            </a>
-                        </div>
-                    `);
-                });
-            };
-            loadJobs();
-        }
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+      markers.clear();
+    };
+  }, []);
 
-        return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
-            }
-        };
-    }, []);
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
-    return <div ref={mapRef} style={{ width: '100%', height: '100vh' }} />;
-};
+    markersRef.current.forEach((marker) => marker.removeFrom(map));
+    markersRef.current.clear();
 
-export default MapContainer;
+    jobs.forEach((job) => {
+      if (!Number.isFinite(job.lat) || !Number.isFinite(job.lng)) return;
+      const marker = L.marker([job.lat, job.lng]).addTo(map);
+      marker.bindPopup(popupFor(job));
+      marker.on('click', () => onSelectJob(job.id));
+      markersRef.current.set(job.id, marker);
+    });
+
+    if (jobs.length > 1) {
+      const bounds = L.latLngBounds(jobs.map((job) => [job.lat, job.lng]));
+      map.fitBounds(bounds.pad(0.22), { maxZoom: 14, animate: true });
+    } else if (jobs.length === 1) {
+      map.setView([jobs[0].lat, jobs[0].lng], 14, { animate: true });
+    }
+  }, [jobs, onSelectJob]);
+
+  useEffect(() => {
+    const marker = markersRef.current.get(selectedJobId);
+    if (marker) marker.openPopup();
+  }, [selectedJobId]);
+
+  return <div className="map-canvas" ref={mapRef} aria-label="Map of job openings" />;
+}

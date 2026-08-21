@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "greenhouse-example",
+      "label": "Greenhouse board — replace token",
+      "type": "greenhouse",
+      "enabled": false,
+      "boardToken": "replace-with-greenhouse-board-token",
+      "defaultLocation": "Douala, Cameroon"
+    },
+    {
+      "id": "lever-example",
+      "label": "Lever board — replace site",
+      "type": "lever",
+      "enabled": false,
+      "site": "replace-with-lever-site-name",
+      "defaultLocation": "Douala, Cameroon"
+    },
+    {
+      "id": "rss-example",
+      "label": "RSS or Atom jobs feed — replace URL",
+      "type": "rss",
+      "enabled": false,
+      "url": "https://example.com/jobs.xml",
+      "defaultLocation": "Douala, Cameroon"
+    }
+  ]
+}

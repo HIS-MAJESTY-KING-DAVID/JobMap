@@ -1,33 +1,31 @@
-# JobMap - Project Brainstorm
+# JobMap product direction
 
-## 1. Core Value Proposition
-Visualizing job opportunities on an interactive map to help users find work in desired locations or commute zones.
+## Core value proposition
 
-## 2. Data Strategy
-**Key Constraint**: Use Google Maps API to fetch data.
-*Interpretation*:
-- Use **Places API** to identify companies/businesses in a target area.
-- Potential workflow:
-    1. Search for specific business types (e.g., "Tech Companies", "Restaurants") in a viewport.
-    2. Get list of places + metadata (website, address, rating).
-    3. Display these as potential employers.
+JobMap helps people find **current job openings in places they care about**. The first release treats geography as a primary search dimension: users see roles in a list, locate them on a map, and open the original source listing.
 
-## 3. Key Features
-- **Map Interface**: Full-screen map with clustering for high-density areas.
-- **Search & Filter**:
-    - Keywords (e.g., "Engineering", "Retail")
-    - Radius/Location
-- **Place Details**:
-    - Company Name
-    - Rating/Reviews (from Maps)
-    - Link to Website/Directions
+## First-release boundary
 
-## 4. Technical Architecture
-- **Frontend**: React (Vite or Next.js)
-- **Maps Integration**: Google Maps JavaScript API
-- **State Management**: React Context or Zustand
-- **Styling**: TailwindCSS (for rapid, modern UI)
+JobMap is a **job-posting map**, not a directory of businesses that may or may not be hiring. A role is eligible for the map only when it has an application or source URL. Each record should carry its source, posted date where available, last verification time, expiry time, and coordinates or an explicitly reviewable location fallback.
 
-## 5. Questions/Refinements
-- [ ] Clarify "fetch data" - are we only mapping businesses, or do we need actual job postings?
-- [ ] Do we need a backend to proxy API requests (to hide keys), or is this client-side only?
+## Data strategy
+
+The first ingestion layer uses public, source-specific endpoints rather than scraping search-result pages. Supported adapter families are Greenhouse public job boards, Lever public postings, and approved RSS/Atom feeds. Sources are configured in `data/sources.json`; the scheduled refresh writes `public/jobs.json`, which the static frontend consumes.
+
+## User experience
+
+The current vertical slice includes a map-and-results layout, title/company/skill/location search, work-mode and employment filters, synchronized marker selection, source links, empty and loading states, and freshness metadata. The next user-facing improvements should be radius or commute filtering, a city selector, richer job details, and saved searches.
+
+## Architecture roadmap
+
+1. **Now:** Static frontend plus repository-native scheduled ingestion, with deterministic normalization, deduplication, TTL-based expiry, and source health metadata.
+2. **Next:** Add a verified employer/source registry for Douala and nearby cities, then review the quality and freshness of each source.
+3. **Scale:** Move adapters and normalized records into a hosted backend/database with retries, raw-record history, review queues, source-health monitoring, and an API consumed by the same frontend contract.
+4. **Later:** Add user accounts, saved searches, alerts, commute-time calculations, and additional cities once the core data supply is reliable.
+
+## Open validation questions
+
+- Which sources consistently produce legitimate Douala openings?
+- Do users prioritize current vacancies, employer discovery, commute time, salary, or application guidance?
+- What freshness window feels trustworthy for each source family?
+- Which fields should be required before a role is published?

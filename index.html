@@ -1,40 +1,14 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg/xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JobMap</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <script>
-    window.gm_authFailure = function () {
-      const message = "Google Maps failed to load. This is usually due to:\n1. Invalid API Key\n2. Billing not enabled\n3. Maps JavaScript API not enabled\n\nCheck your browser console for the specific error code.";
-      alert(message);
-      console.error("Google Maps Auth Failure triggered.");
-
-      // Create a visible error banner
-      const banner = document.createElement('div');
-      banner.style.position = 'fixed';
-      banner.style.top = '0';
-      banner.style.left = '0';
-      banner.style.width = '100%';
-      banner.style.backgroundColor = '#ff4444';
-      banner.style.color = 'white';
-      banner.style.padding = '20px';
-      banner.style.zIndex = '9999';
-      banner.style.textAlign = 'center';
-      banner.style.fontWeight = 'bold';
-      banner.innerText = message;
-      document.body.prepend(banner);
-    }
-  </script>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102225" />
+    <meta name="description" content="A location-aware map of current job openings in Douala and beyond." />
+    <title>JobMap — Work, placed in context.</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
