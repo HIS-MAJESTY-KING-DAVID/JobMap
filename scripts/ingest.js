@@ -41,7 +41,7 @@ const locationFallbacks = {
 const now = new Date();
 
 function slugify(value = '') {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
 }
 
 function cleanText(value = '') {
@@ -130,7 +130,13 @@ async function fetchText(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
-    const response = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json, application/xml, text/xml' } });
+    const response = await fetch(url, { 
+      signal: controller.signal, 
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*'
+      } 
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.text();
   } finally {

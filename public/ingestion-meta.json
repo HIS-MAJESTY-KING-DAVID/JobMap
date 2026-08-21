@@ -1,5 +1,20 @@
 {
-  "generatedAt": "2026-08-21T11:06:30.720Z",
-  "jobs": 5,
-  "sources": []
+  "generatedAt": "2026-08-21T11:23:33.115Z",
+  "jobs": 647,
+  "sources": [
+    {
+      "id": "greenhouse-stripe",
+      "label": "Stripe via Greenhouse",
+      "status": "ok",
+      "fetched": 570,
+      "durationMs": 2777
+    },
+    {
+      "id": "weworkremotely-rss",
+      "label": "We Work Remotely RSS",
+      "status": "ok",
+      "fetched": 99,
+      "durationMs": 1219
+    }
+  ]
 }

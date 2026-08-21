@@ -12,14 +12,14 @@
       "notes": "Apply for an approved ReliefWeb API appname before enabling this source."
     },
     {
-      "id": "greenhouse-cameroon-template",
-      "label": "Greenhouse employer board — configure token",
+      "id": "greenhouse-stripe",
+      "label": "Stripe via Greenhouse",
       "type": "greenhouse",
-      "enabled": false,
-      "boardToken": "replace-with-greenhouse-board-token",
+      "enabled": true,
+      "boardToken": "stripe",
       "defaultLocation": "Cameroon",
       "scope": "Cameroon-wide",
-      "status": "configuration-required"
+      "status": "verified"
     },
     {
       "id": "lever-cameroon-template",
@@ -32,14 +32,14 @@
       "status": "configuration-required"
     },
     {
-      "id": "approved-cameroon-rss-template",
-      "label": "Approved Cameroon jobs RSS/Atom feed — configure URL",
+      "id": "weworkremotely-rss",
+      "label": "We Work Remotely RSS",
       "type": "rss",
-      "enabled": false,
-      "url": "https://replace-with-approved-feed.example/jobs.xml",
+      "enabled": true,
+      "url": "https://weworkremotely.com/remote-jobs.rss",
       "defaultLocation": "Cameroon",
       "scope": "Cameroon-wide",
-      "status": "verification-required"
+      "status": "verified"
     }
   ]
 }
