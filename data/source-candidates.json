@@ -1,0 +1,50 @@
+{
+  "candidates": [
+    {
+      "id": "reliefweb-api",
+      "name": "ReliefWeb Jobs API",
+      "coverage": "Cameroon-wide humanitarian and development roles",
+      "url": "https://reliefweb.int/jobs",
+      "machineEndpoint": "https://api.reliefweb.int/v2/jobs",
+      "status": "approval-required",
+      "nextStep": "Request an approved appname, then enable reliefweb-cameroon in sources.json."
+    },
+    {
+      "id": "orange-cameroon-taleo",
+      "name": "Orange Cameroon careers",
+      "coverage": "Cameroon; current public openings show regional locations",
+      "url": "https://orangecameroun.taleo.net/careersection/in/joblist.ftl",
+      "machineEndpoint": null,
+      "status": "endpoint-validation-required",
+      "documentation": "https://docs.oracle.com/en/cloud/saas/taleo-enterprise/20b/otcug/social-media.html",
+      "nextStep": "Verify that RSS is activated and obtain the public feed URL before enabling automation."
+    },
+    {
+      "id": "greenhouse-employers",
+      "name": "Greenhouse employer boards",
+      "coverage": "Employer-specific; can be Cameroon-wide when location fields are present",
+      "url": "https://developers.greenhouse.io/job-board.html",
+      "machineEndpoint": "https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs",
+      "status": "ready-with-board-token",
+      "nextStep": "Add approved employer board tokens and default location rules."
+    },
+    {
+      "id": "lever-employers",
+      "name": "Lever employer boards",
+      "coverage": "Employer-specific; can be Cameroon-wide when location fields are present",
+      "url": "https://hire.lever.co/developer/documentation",
+      "machineEndpoint": "https://api.lever.co/v0/postings/{site}?mode=json",
+      "status": "ready-with-site-name",
+      "nextStep": "Add approved employer site names and verify location coverage."
+    },
+    {
+      "id": "local-rss-feeds",
+      "name": "Local employer, university, NGO, and job-board RSS/Atom feeds",
+      "coverage": "Cameroon-wide depending on publisher",
+      "url": null,
+      "machineEndpoint": "Configured feed URL",
+      "status": "publisher-by-publisher",
+      "nextStep": "Collect feed URLs from publishers and validate licensing, freshness, and location fields."
+    }
+  ]
+}

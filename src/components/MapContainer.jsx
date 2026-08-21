@@ -27,7 +27,7 @@ function popupFor(job) {
   `;
 }
 
-export default function MapContainer({ jobs, selectedJobId, onSelectJob }) {
+export default function MapContainer({ jobs, selectedJobId, onSelectJob, mapCenter }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef(new Map());
@@ -36,7 +36,7 @@ export default function MapContainer({ jobs, selectedJobId, onSelectJob }) {
     if (!mapRef.current || mapInstanceRef.current) return undefined;
 
     const markers = markersRef.current;
-    const map = L.map(mapRef.current, { zoomControl: false }).setView([4.0511, 9.7279], 13);
+    const map = L.map(mapRef.current, { zoomControl: false }).setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -49,7 +49,7 @@ export default function MapContainer({ jobs, selectedJobId, onSelectJob }) {
       mapInstanceRef.current = null;
       markers.clear();
     };
-  }, []);
+  }, [mapCenter]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -66,13 +66,15 @@ export default function MapContainer({ jobs, selectedJobId, onSelectJob }) {
       markersRef.current.set(job.id, marker);
     });
 
-    if (jobs.length > 1) {
+    if (jobs.length === 0) {
+      map.setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom, { animate: true });
+    } else if (jobs.length > 1) {
       const bounds = L.latLngBounds(jobs.map((job) => [job.lat, job.lng]));
       map.fitBounds(bounds.pad(0.22), { maxZoom: 14, animate: true });
     } else if (jobs.length === 1) {
       map.setView([jobs[0].lat, jobs[0].lng], 14, { animate: true });
     }
-  }, [jobs, onSelectJob]);
+  }, [jobs, mapCenter, onSelectJob]);
 
   useEffect(() => {
     const marker = markersRef.current.get(selectedJobId);

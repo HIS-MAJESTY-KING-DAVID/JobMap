@@ -1,4 +1,5 @@
-import { seedJobs } from './seedJobs';
+import { seedJobs } from './seedJobs.js';
+import { distanceInKm } from './geo.js';
 
 const JOBS_URL = '/jobs.json';
 
@@ -10,7 +11,8 @@ function normalizeJob(job) {
     company: job.company || 'Unknown employer',
     location: job.location || job.city || 'Location not specified',
     city: job.city || '',
-    country: job.country || '',
+    region: job.region || '',
+    country: job.country || 'Cameroon',
     description: job.description || 'No description supplied by the source.',
     url: job.url || job.applyUrl || '#',
     applyUrl: job.applyUrl || job.url || '#',
@@ -19,6 +21,9 @@ function normalizeJob(job) {
     postedAt: job.postedAt || null,
     lastVerifiedAt: job.lastVerifiedAt || null,
     expiresAt: job.expiresAt || null,
+    salary: job.salary || null,
+    status: job.status || 'Active',
+    locationConfidence: job.locationConfidence || (job.source === 'JobMap curated' ? 'estimated' : job.lat && job.lng ? 'source' : 'estimated'),
     tags: Array.isArray(job.tags) ? job.tags : [],
   };
 }
@@ -42,24 +47,36 @@ export async function fetchJobs({ signal } = {}) {
   }
 }
 
-export function filterJobs(jobs, { query = '', workMode = 'All', employmentType = 'All' } = {}) {
+export function filterJobs(
+  jobs,
+  { query = '', workMode = 'All', employmentType = 'All', origin = null, radiusKm = 0 } = {},
+) {
   const normalizedQuery = query.trim().toLowerCase();
 
-  return jobs.filter((job) => {
-    const searchable = [
-      job.title,
-      job.company,
-      job.location,
-      job.description,
-      ...(job.tags || []),
-    ].join(' ').toLowerCase();
+  return jobs
+    .map((job) => ({ ...job, distanceKm: origin?.id !== 'all' ? distanceInKm(origin, job) : null }))
+    .filter((job) => {
+      const searchable = [
+        job.title,
+        job.company,
+        job.location,
+        job.region,
+        job.description,
+        ...(job.tags || []),
+      ].join(' ').toLowerCase();
 
-    const queryMatches = !normalizedQuery || searchable.includes(normalizedQuery);
-    const workModeMatches = workMode === 'All' || job.workMode === workMode;
-    const employmentMatches = employmentType === 'All' || job.employmentType === employmentType;
+      const queryMatches = !normalizedQuery || searchable.includes(normalizedQuery);
+      const workModeMatches = workMode === 'All' || job.workMode === workMode;
+      const employmentMatches = employmentType === 'All' || job.employmentType === employmentType;
+      const hasCoordinates = Number.isFinite(job.distanceKm);
+      const radiusMatches = origin?.id === 'all' || radiusKm === 0 || (hasCoordinates && job.distanceKm <= radiusKm);
 
-    return queryMatches && workModeMatches && employmentMatches;
-  });
+      return queryMatches && workModeMatches && employmentMatches && radiusMatches;
+    })
+    .sort((a, b) => {
+      if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
+      return new Date(b.postedAt || 0) - new Date(a.postedAt || 0);
+    });
 }
 
 export function getNewestDate(jobs) {

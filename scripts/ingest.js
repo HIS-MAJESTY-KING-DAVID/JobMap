@@ -13,8 +13,26 @@ const DAY = 24 * 60 * 60 * 1000;
 const DEFAULT_TTL_DAYS = 21;
 
 const locationFallbacks = {
-  douala: { lat: 4.0511, lng: 9.7679, city: 'Douala', country: 'Cameroon' },
-  yaounde: { lat: 3.848, lng: 11.5021, city: 'Yaoundé', country: 'Cameroon' },
+  douala: { lat: 4.0511, lng: 9.7679, city: 'Douala', region: 'Littoral', country: 'Cameroon' },
+  yaounde: { lat: 3.848, lng: 11.5021, city: 'Yaoundé', region: 'Centre', country: 'Cameroon' },
+  bafoussam: { lat: 5.4781, lng: 10.4176, city: 'Bafoussam', region: 'West', country: 'Cameroon' },
+  bamenda: { lat: 5.9597, lng: 10.1459, city: 'Bamenda', region: 'North-West', country: 'Cameroon' },
+  buea: { lat: 4.1527, lng: 9.241, city: 'Buea', region: 'South-West', country: 'Cameroon' },
+  limbe: { lat: 4.0236, lng: 9.2069, city: 'Limbe', region: 'South-West', country: 'Cameroon' },
+  kumba: { lat: 4.6363, lng: 9.4469, city: 'Kumba', region: 'South-West', country: 'Cameroon' },
+  kribi: { lat: 2.9406, lng: 9.9103, city: 'Kribi', region: 'South', country: 'Cameroon' },
+  ebolowa: { lat: 2.9167, lng: 11.15, city: 'Ebolowa', region: 'South', country: 'Cameroon' },
+  bertoua: { lat: 4.5773, lng: 13.6846, city: 'Bertoua', region: 'East', country: 'Cameroon' },
+  ngaoundere: { lat: 7.3167, lng: 13.5833, city: 'Ngaoundéré', region: 'Adamawa', country: 'Cameroon' },
+  garoua: { lat: 9.3014, lng: 13.3977, city: 'Garoua', region: 'North', country: 'Cameroon' },
+  maroua: { lat: 10.591, lng: 14.3159, city: 'Maroua', region: 'Far North', country: 'Cameroon' },
+  kousseri: { lat: 12.0769, lng: 15.0306, city: 'Kousseri', region: 'Far North', country: 'Cameroon' },
+  nkongsamba: { lat: 5.6333, lng: 9.95, city: 'Nkongsamba', region: 'Littoral', country: 'Cameroon' },
+  edea: { lat: 3.8, lng: 10.1333, city: 'Edéa', region: 'Littoral', country: 'Cameroon' },
+  foumban: { lat: 5.7266, lng: 10.898, city: 'Foumban', region: 'West', country: 'Cameroon' },
+  dschang: { lat: 5.452, lng: 10.057, city: 'Dschang', region: 'West', country: 'Cameroon' },
+  mbalmayo: { lat: 3.5167, lng: 11.5, city: 'Mbalmayo', region: 'Centre', country: 'Cameroon' },
+  sangmelima: { lat: 2.9333, lng: 11.9833, city: 'Sangmélima', region: 'South', country: 'Cameroon' },
   lagos: { lat: 6.5244, lng: 3.3792, city: 'Lagos', country: 'Nigeria' },
   accra: { lat: 5.6037, lng: -0.187, city: 'Accra', country: 'Ghana' },
   nairobi: { lat: -1.2921, lng: 36.8219, city: 'Nairobi', country: 'Kenya' },
@@ -89,6 +107,7 @@ function normalizeJob(raw, source) {
     company: cleanText(company),
     location: locationData.location,
     city: locationData.city,
+    region: locationData.region || raw.region || '',
     country: locationData.country,
     lat: Number(raw.lat ?? locationData.lat),
     lng: Number(raw.lng ?? locationData.lng),
@@ -102,6 +121,7 @@ function normalizeJob(raw, source) {
     expiresAt,
     employmentType: raw.employmentType || raw.type || 'Full-time',
     workMode: raw.workMode || 'Not listed',
+    locationConfidence: raw.locationConfidence || (raw.location ? 'source' : 'estimated'),
     tags: inferTags(title, description, raw.tags || []),
   };
 }
@@ -147,6 +167,36 @@ async function fetchLever(source) {
     employmentType: job.categories?.commitment,
     tags: [job.categories?.team, job.categories?.department].filter(Boolean),
   }));
+}
+
+async function fetchReliefWeb(source) {
+  const appname = process.env.RELIEFWEB_APPNAME || source.appname;
+  if (!appname || appname.startsWith('REPLACE_')) throw new Error('ReliefWeb requires an approved appname in source configuration or RELIEFWEB_APPNAME');
+  const url = new URL('https://api.reliefweb.int/v2/jobs');
+  url.searchParams.set('appname', appname);
+  url.searchParams.set('filter[field]', 'country');
+  url.searchParams.set('filter[value]', 'Cameroon');
+  url.searchParams.set('profile', 'full');
+  url.searchParams.set('preset', 'latest');
+  url.searchParams.set('limit', '1000');
+  const payload = JSON.parse(await fetchText(url.toString()));
+  return (payload.data || []).map((item) => {
+    const fields = item.fields || {};
+    const locations = Array.isArray(fields.location) ? fields.location.map((entry) => entry.name || entry).join(', ') : fields.location?.name || fields.location;
+    const organization = Array.isArray(fields.organization) ? fields.organization.map((entry) => entry.name || entry).join(', ') : fields.organization?.name || fields.organization;
+    return {
+      externalId: item.id,
+      title: fields.title,
+      company: organization || 'ReliefWeb partner',
+      location: locations || 'Cameroon',
+      description: fields.description,
+      url: fields.url || `https://reliefweb.int/node/${item.id}`,
+      applyUrl: fields.url || `https://reliefweb.int/node/${item.id}`,
+      postedAt: fields.date?.created || fields.date?.original,
+      employmentType: fields.type?.name,
+      tags: [fields.career_category?.name, fields.experience?.name].filter(Boolean),
+    };
+  });
 }
 
 function fetchRss(source) {
@@ -198,7 +248,9 @@ async function main() {
         ? await fetchGreenhouse(source)
         : source.type === 'lever'
           ? await fetchLever(source)
-          : await fetchRss(source);
+          : source.type === 'reliefweb'
+            ? await fetchReliefWeb(source)
+            : await fetchRss(source);
       const normalized = rawJobs.map((job) => normalizeJob(job, source));
       normalized.forEach((job) => allJobs.set(dedupeKey(job), job));
       sourceReports.push({ id: source.id, label: source.label, status: 'ok', fetched: normalized.length, durationMs: Date.now() - startedAt });

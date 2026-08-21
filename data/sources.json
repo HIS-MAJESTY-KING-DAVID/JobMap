@@ -1,28 +1,45 @@
 {
   "sources": [
     {
-      "id": "greenhouse-example",
-      "label": "Greenhouse board — replace token",
+      "id": "reliefweb-cameroon",
+      "label": "ReliefWeb jobs — Cameroon",
+      "type": "reliefweb",
+      "enabled": false,
+      "appname": "REPLACE_WITH_APPROVED_RELIEFWEB_APPNAME",
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "approval-required",
+      "notes": "Apply for an approved ReliefWeb API appname before enabling this source."
+    },
+    {
+      "id": "greenhouse-cameroon-template",
+      "label": "Greenhouse employer board — configure token",
       "type": "greenhouse",
       "enabled": false,
       "boardToken": "replace-with-greenhouse-board-token",
-      "defaultLocation": "Douala, Cameroon"
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "configuration-required"
     },
     {
-      "id": "lever-example",
-      "label": "Lever board — replace site",
+      "id": "lever-cameroon-template",
+      "label": "Lever employer board — configure site",
       "type": "lever",
       "enabled": false,
       "site": "replace-with-lever-site-name",
-      "defaultLocation": "Douala, Cameroon"
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "configuration-required"
     },
     {
-      "id": "rss-example",
-      "label": "RSS or Atom jobs feed — replace URL",
+      "id": "approved-cameroon-rss-template",
+      "label": "Approved Cameroon jobs RSS/Atom feed — configure URL",
       "type": "rss",
       "enabled": false,
-      "url": "https://example.com/jobs.xml",
-      "defaultLocation": "Douala, Cameroon"
+      "url": "https://replace-with-approved-feed.example/jobs.xml",
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "verification-required"
     }
   ]
 }
