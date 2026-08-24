@@ -56,16 +56,16 @@ The next design discussion should settle which remote sources are allowed in the
 
 ## Current implementation snapshot
 
-The current estimated product progress is **38% overall**. The first guided ApplyFlow surface is now implemented: a user can select a job, review a two-step preparation sheet, inspect a local draft preview, and open the canonical application source. The flow is deliberately user-controlled and does not submit applications automatically.
+The current estimated product progress is **41% overall**. The first profile-aware ApplyFlow surface is now implemented: a user can select a job, review a two-step preparation sheet, inspect a local draft preview informed by the saved local profile, and open the canonical application source. The flow is deliberately user-controlled and does not submit applications automatically. The sidebar now scrolls as one surface and keeps the five section buttons visible on web and mobile.
 
 | Feature area | Progress |
 |---|---:|
-| Mobile-first responsive UI | 55% |
+| Mobile-first responsive UI | 65% |
 | PWA installation and offline shell | 35% |
 | Global remote source network | 40% |
 | Global remote eligibility engine | 15% |
 | Swipe discovery queue | 12% |
-| Application Pack generation | 8% |
+| Application Pack generation | 12% |
 | Hybrid assisted application | 5% |
 | Simplify profile/resume import | 5% |
 | Email and Google sign-in | 0% |

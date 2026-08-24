@@ -99,16 +99,16 @@ The pipeline preserves postings during temporary source failures and expires the
 
 ## Current progress snapshot
 
-The current estimated product progress is **38% overall**. The mobile sidebar now scrolls as one touch-friendly surface, and the first guided ApplyFlow panel is implemented from a selected job.
+The current estimated product progress is **41% overall**. The web and mobile sidebar now scroll as one touch-friendly surface with the five section buttons kept visible, and the first profile-aware ApplyFlow panel is implemented from a selected job.
 
 | Area | Progress | Current capability |
 |---|---:|---|
-| Mobile-first responsive UI | 55% | Responsive shell, bottom navigation, touch targets, and unified sidebar scrolling. |
+| Mobile-first responsive UI | 65% | Responsive shell, bottom navigation, touch targets, visible section navigation, and unified desktop/mobile sidebar scrolling. |
 | PWA installation and offline shell | 35% | Manifest, icon, service worker, app-shell caching, and feed caching. |
 | Global remote source network | 40% | Jobicy, Remotive, Remote OK, and WWR adapters with live feed refresh. |
 | Global remote eligibility | 15% | Evidence-based eligibility labels and detail-panel badges. |
-| ApplyFlow | 12% | Selected-job launch, two-step preparation/review sheet, local draft preview, canonical source handoff, and no silent submission. |
-| Simplify import | 5% | Import lanes defined; no importer UI yet. |
+| ApplyFlow | 14% | Selected-job launch, two-step preparation/review sheet, local profile workspace, profile-aware draft preview, canonical source handoff, and no silent submission. |
+| Simplify import | 5% | Import lanes defined; importer UI remains next after hosted persistence. |
 | Email/Google accounts | 0% | Architecture confirmed; backend integration not started. |
 
-ApplyFlow is therefore **about 12% complete** as an end-to-end feature. The remaining work is profile-backed tailoring, Simplify profile/tracker import, fit and eligibility ranking, swipe gestures, application history, approved form assistance, and final confirmation/audit records.
+ApplyFlow is therefore **about 14% complete** as an end-to-end feature. The remaining work is authenticated profile and CV persistence, Simplify profile/tracker import, deeper profile-backed tailoring, fit and eligibility ranking, swipe gestures, application history, approved form assistance, and final confirmation/audit records.

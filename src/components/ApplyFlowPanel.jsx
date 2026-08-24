@@ -19,6 +19,15 @@ function DraftBlock({ label, children }) {
 
 export default function ApplyFlowPanel({ job, onClose }) {
   const [step, setStep] = useState('prepare');
+  const [profile] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('jobmap-profile') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const profileName = profile.fullName || 'your approved profile';
+  const profileSkills = profile.skills || 'your saved skills and experience';
 
   if (!job) return null;
 
@@ -55,10 +64,10 @@ export default function ApplyFlowPanel({ job, onClose }) {
           </>
         ) : (
           <>
-            <p className="apply-flow__intro">This is a local draft preview. Profile tailoring and saved application history will unlock with your JobMap account.</p>
+            <p className="apply-flow__intro">This local draft uses {profile.fullName ? <strong>{profileName}</strong> : 'your local profile draft'}. Profile tailoring and saved application history will unlock with your JobMap account.</p>
             <div className="apply-flow__draft">
               <DraftBlock label="Position headline">{job.title} · {job.company}</DraftBlock>
-              <DraftBlock label="Relevant signal">Experience and skills matched to this opening will appear here after your profile is connected.</DraftBlock>
+              <DraftBlock label="Relevant signal">{profile.fullName ? `Prioritize ${profileSkills} when tailoring this application.` : 'Experience and skills matched to this opening will appear here after your profile is connected.'}</DraftBlock>
               <DraftBlock label="Short application note">Hello {job.company} team, I am interested in the {job.title} opportunity and would welcome the chance to discuss how my experience could contribute.</DraftBlock>
             </div>
             <div className="apply-flow__actions">

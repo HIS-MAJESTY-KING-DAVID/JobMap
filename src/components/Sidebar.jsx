@@ -1,4 +1,7 @@
+import ProfilePanel from './ProfilePanel';
+
 function formatDate(value) {
+
   if (!value) return 'Date unavailable';
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
 }
@@ -149,7 +152,9 @@ export default function Sidebar({
         )}
       </div>
 
+            {activeTab === 'profile' ? <ProfilePanel onBack={() => onTabChange('discover')} /> : <>
       <div className="results-header">
+
         <div>
           <p className="results-kicker">Openings in {currentLocation.name}</p>
           <h1>{jobs.length} <span>of {totalJobs} roles</span></h1>
@@ -169,9 +174,11 @@ export default function Sidebar({
         {!isLoading && !error && jobs.map((job) => (
           <JobCard key={job.id} job={job} isSaved={savedJobIds.includes(job.id)} isSelected={job.id === selectedJobId} onSelect={onSelectJob} onSave={onSaveJob} />
         ))}
-      </div>
+            </div>
+      </>}
 
             <footer className="sidebar__footer">
+
         <span>Last verified {lastUpdated ? formatDate(lastUpdated) : '—'}</span>
         <span>{appMode === 'remote' ? 'Global remote feed · source links preserved' : 'National sources refresh automatically'}</span>
       </footer>

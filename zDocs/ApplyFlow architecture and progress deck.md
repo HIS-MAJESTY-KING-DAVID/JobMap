@@ -64,22 +64,22 @@ The mobile PWA is the daily operating surface.
 - **Tracker:** applied, interview, offer, rejected, and follow-up states.
 - **Profile:** skills, languages, timezone, work authorization, salary, CVs, and application preferences.
 
-Current mobile foundation includes responsive cards, touch targets, bottom navigation, unified sidebar scrolling, install metadata, service-worker caching, and a network-first feed refresh strategy.
+Current mobile/web foundation includes responsive cards, touch targets, visible five-section navigation, unified sidebar scrolling, a local Profile workspace, install metadata, service-worker caching, and a network-first feed refresh strategy.
 
 ## Slide 6
-JobMap is 38% complete overall—and the foundation is real.
+JobMap is 41% complete overall—and the foundation is real.
 
 | Workstream | Progress | Current signal |
 |---|---:|---|
 | Cameroon map, search, radius, filters | 90% | Working national discovery vertical slice |
 | Source registry and ingestion | 82% | Seven enabled source families and refreshed metadata |
 | Global remote source network | 40% | Four live global adapters with structured records |
-| Mobile-first responsive UI | 55% | Local/Remote modes, bottom nav, touch-first shell |
+| Mobile-first responsive UI | 65% | Local/Remote modes, visible bottom nav, touch-first shell, unified scrolling |
 | PWA installation/offline shell | 35% | Manifest, icon, service worker, feed caching |
 | Global eligibility engine | 15% | Evidence-based badges in feed and details |
 
 ## Slide 7
-ApplyFlow is 12% complete: the guided surface is working.
+ApplyFlow is 14% complete: the guided, profile-aware surface is working.
 
 **Implemented now**
 - Launch ApplyFlow from a selected job.
@@ -89,11 +89,11 @@ ApplyFlow is 12% complete: the guided surface is working.
 - Keep the user in control with an explicit no-silent-submission guardrail.
 
 **Not implemented yet**
-- Authenticated profile and CV versions.
+- Authenticated profile and CV versions (the local profile foundation is now shipped).
 - Simplify tracker/profile import.
 - Real fit scoring and eligibility-aware ranking.
 - Swipe gestures, undo, and queue ranking.
-- Profile-backed Application Pack generation.
+- Authenticated profile-backed Application Pack generation.
 - Application history, reminders, approved autofill, and audit records.
 
 ## Slide 8
