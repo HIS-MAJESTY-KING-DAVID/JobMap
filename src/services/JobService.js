@@ -33,6 +33,15 @@ function isActive(job, now = new Date()) {
   return new Date(job.expiresAt) >= now;
 }
 
+export function isRemoteJob(job) {
+  const searchable = [job.title, job.company, job.location, job.description, job.source, ...(job.tags || [])]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return job.workMode === 'Remote'
+    || /remote|work from anywhere|worldwide|distributed|we work remotely/.test(searchable);
+}
+
 export async function fetchJobs({ signal } = {}) {
   try {
     const response = await fetch(JOBS_URL, { signal, headers: { Accept: 'application/json' } });
@@ -49,7 +58,8 @@ export async function fetchJobs({ signal } = {}) {
 
 export function filterJobs(
   jobs,
-  { query = '', workMode = 'All', employmentType = 'All', origin = null, radiusKm = 0 } = {},
+    { query = '', workMode = 'All', employmentType = 'All', origin = null, radiusKm = 0, mode = 'local' } = {},
+
 ) {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -66,12 +76,15 @@ export function filterJobs(
       ].join(' ').toLowerCase();
 
       const queryMatches = !normalizedQuery || searchable.includes(normalizedQuery);
+            const modeMatches = mode === 'remote' ? isRemoteJob(job) : mode !== 'local' || !isRemoteJob(job);
       const workModeMatches = workMode === 'All' || job.workMode === workMode;
       const employmentMatches = employmentType === 'All' || job.employmentType === employmentType;
+
       const hasCoordinates = Number.isFinite(job.distanceKm);
       const radiusMatches = origin?.id === 'all' || radiusKm === 0 || (hasCoordinates && job.distanceKm <= radiusKm);
 
-      return queryMatches && workModeMatches && employmentMatches && radiusMatches;
+            return modeMatches && queryMatches && workModeMatches && employmentMatches && radiusMatches;
+
     })
     .sort((a, b) => {
       if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;

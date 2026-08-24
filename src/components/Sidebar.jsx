@@ -50,9 +50,14 @@ export default function Sidebar({
   alertEnabled,
   onToggleAlerts,
   lastUpdated,
-  isLoading,
+    isLoading,
   error,
+  appMode,
+  onModeChange,
+  activeTab,
+  onTabChange,
 }) {
+
   const currentLocation = locations.find((location) => location.id === locationId) || locations[0];
 
   return (
@@ -65,7 +70,16 @@ export default function Sidebar({
             <p className="brand-tagline">Cameroon, work in context.</p>
           </div>
         </div>
-        <div className="location-chip"><span className="status-dot" /> {currentLocation.name}</div>
+                <div className="location-chip"><span className="status-dot" /> {appMode === 'remote' ? 'Remote worldwide · from Cameroon' : currentLocation.name}</div>
+        <div className="mode-switch" aria-label="Job discovery mode">
+          <button className={appMode === 'local' ? 'mode-switch__button mode-switch__button--active' : 'mode-switch__button'} onClick={() => onModeChange('local')} type="button">
+            <span aria-hidden="true">⌖</span> Cameroon Local
+          </button>
+          <button className={appMode === 'remote' ? 'mode-switch__button mode-switch__button--active' : 'mode-switch__button'} onClick={() => onModeChange('remote')} type="button">
+            <span aria-hidden="true">↗</span> Global Remote
+          </button>
+        </div>
+
       </div>
 
       <div className="sidebar__controls">
@@ -81,10 +95,14 @@ export default function Sidebar({
           {query && <button aria-label="Clear search" className="clear-search" onClick={() => onQueryChange('')} type="button">×</button>}
         </label>
 
+                {appMode === 'remote' && <div className="mode-callout"><strong>Cameroon to the world.</strong><span>Remote matches are surfaced here first. Eligibility and timezone checks are coming next.</span></div>}
+
         <div className="location-filter">
-          <label>
+
+                    <label className={appMode === 'remote' ? 'filter-disabled' : ''}>
             <span>Search area</span>
-            <select value={locationId} onChange={(event) => onLocationChange(event.target.value)}>
+            <select value={locationId} onChange={(event) => onLocationChange(event.target.value)} disabled={appMode === 'remote'}>
+
               {locations.map((location) => <option key={location.id} value={location.id}>{location.name} · {location.region}</option>)}
             </select>
           </label>
@@ -153,10 +171,34 @@ export default function Sidebar({
         ))}
       </div>
 
-      <footer className="sidebar__footer">
+            <footer className="sidebar__footer">
         <span>Last verified {lastUpdated ? formatDate(lastUpdated) : '—'}</span>
-        <span>National sources refresh automatically</span>
+        <span>{appMode === 'remote' ? 'Global remote feed · source links preserved' : 'National sources refresh automatically'}</span>
       </footer>
+      <nav className="mobile-nav" aria-label="Primary navigation">
+        {[
+          ['discover', '⌕', 'Discover'],
+          ['swipe', '↗', 'Swipe'],
+          ['saved', '☆', 'Saved'],
+          ['tracker', '✓', 'Tracker'],
+          ['profile', '◉', 'Profile'],
+        ].map(([tab, icon, label]) => (
+          <button
+            className={activeTab === tab ? 'mobile-nav__item mobile-nav__item--active' : 'mobile-nav__item'}
+            key={tab}
+            onClick={() => {
+              if (tab === 'discover') onModeChange('local');
+              if (tab === 'swipe') onModeChange('remote');
+              onTabChange(tab);
+            }}
+            type="button"
+          >
+            <span className="mobile-nav__icon" aria-hidden="true">{icon}</span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
     </aside>
   );
 }

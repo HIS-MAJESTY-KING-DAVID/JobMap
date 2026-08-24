@@ -21,8 +21,11 @@ function App() {
   const [locationId, setLocationId] = useState(defaultLocationId);
   const [radiusKm, setRadiusKm] = useState(0);
   const [workMode, setWorkMode] = useState('All');
-  const [employmentType, setEmploymentType] = useState('All');
+    const [employmentType, setEmploymentType] = useState('All');
+  const [appMode, setAppMode] = useState('local');
+  const [activeTab, setActiveTab] = useState('discover');
   const [selectedJobId, setSelectedJobId] = useState(null);
+
   const [savedJobs, setSavedJobs] = useState(() => getSavedJobs());
   const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
   const [alertEnabled, setAlertEnabled] = useState(() => getAlertsEnabled());
@@ -42,10 +45,18 @@ function App() {
   }, []);
 
   const selectedLocation = useMemo(() => getLocationById(locationId), [locationId]);
-  const filteredJobs = useMemo(
-    () => filterJobs(jobs, { query, workMode, employmentType, origin: selectedLocation, radiusKm }),
-    [jobs, query, workMode, employmentType, selectedLocation, radiusKm],
+    const filteredJobs = useMemo(
+    () => filterJobs(jobs, {
+      query,
+      workMode,
+      employmentType,
+      origin: appMode === 'remote' ? getLocationById('all') : selectedLocation,
+      radiusKm: appMode === 'remote' ? 0 : radiusKm,
+      mode: appMode,
+    }),
+    [jobs, query, workMode, employmentType, selectedLocation, radiusKm, appMode],
   );
+
   const activeSelectedJobId = filteredJobs.some((job) => job.id === selectedJobId) ? selectedJobId : null;
   const selectedJob = filteredJobs.find((job) => job.id === activeSelectedJobId) || null;
   const savedJobIds = savedJobs.map((job) => job.id);
@@ -142,19 +153,42 @@ function App() {
         savedSearches={savedSearches}
         onSaveSearch={saveCurrentSearch}
         onApplySearch={applySavedSearch}
-        alertEnabled={alertEnabled}
+                alertEnabled={alertEnabled}
         onToggleAlerts={toggleAlerts}
         lastUpdated={getNewestDate(jobs)}
         isLoading={isLoading}
         error={error}
+        appMode={appMode}
+        onModeChange={(nextMode) => {
+          setAppMode(nextMode);
+          setActiveTab(nextMode === 'remote' ? 'swipe' : 'discover');
+          setSelectedJobId(null);
+        }}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
-      <section className="map-panel">
+      <section className={`map-panel ${appMode === 'remote' ? 'map-panel--remote' : ''}`}>
+
         <div className="map-panel__caption">
-          <span className="caption-pill">{filteredJobs.length} mapped openings</span>
-          <span className="caption-copy">{selectedLocation.name} · explore by place, then open the source listing.</span>
+                    <span className="caption-pill">{filteredJobs.length} {appMode === 'remote' ? 'remote matches' : 'mapped openings'}</span>
+          <span className="caption-copy">{appMode === 'remote' ? 'Cameroon to the world · check eligibility before you apply.' : `${selectedLocation.name} · explore by place, then open the source listing.`}</span>
+
         </div>
-        <MapContainer jobs={filteredJobs} selectedJobId={activeSelectedJobId} onSelectJob={selectJob} mapCenter={selectedLocation} />
-        <div className="map-legend"><span className="legend-marker" /> Job opening</div>
+                {appMode === 'remote' ? (
+          <div className="remote-context" aria-label="Global remote context">
+            <div className="remote-context__orb" aria-hidden="true"><span>↗</span></div>
+            <p className="remote-context__eyebrow">REMOTE FROM CAMEROON</p>
+            <h2>Work beyond the map.</h2>
+            <p>Review worldwide remote roles, check the eligibility signal, then build your application pack.</p>
+            <div className="remote-context__chips"><span>Worldwide search</span><span>Timezone-aware next</span><span>Human-reviewed apply</span></div>
+          </div>
+        ) : (
+          <>
+            <MapContainer jobs={filteredJobs} selectedJobId={activeSelectedJobId} onSelectJob={selectJob} mapCenter={selectedLocation} />
+            <div className="map-legend"><span className="legend-marker" /> Job opening</div>
+          </>
+        )}
+
         <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
       </section>
     </main>
