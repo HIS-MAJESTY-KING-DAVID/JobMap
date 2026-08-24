@@ -67,7 +67,7 @@ The mobile PWA is the daily operating surface.
 Current mobile/web foundation includes responsive cards, touch targets, visible five-section navigation, unified sidebar scrolling, a local Profile workspace, install metadata, service-worker caching, and a network-first feed refresh strategy.
 
 ## Slide 6
-JobMap is 41% complete overall—and the foundation is real.
+JobMap is 44% complete overall—and the foundation is real.
 
 | Workstream | Progress | Current signal |
 |---|---:|---|
@@ -79,13 +79,14 @@ JobMap is 41% complete overall—and the foundation is real.
 | Global eligibility engine | 15% | Evidence-based badges in feed and details |
 
 ## Slide 7
-ApplyFlow is 14% complete: the guided, profile-aware surface is working.
+ApplyFlow is 22% complete: the in-site editable pack and local queue are working.
 
 **Implemented now**
 - Launch ApplyFlow from a selected job.
 - Review a two-step preparation sheet.
-- See a local draft headline, relevance note, and short message.
-- Open the canonical source listing or application page.
+- Edit a local role headline, cover note, and screening-answer draft inside JobMap.
+- Save the approved pack into the local ApplyFlow queue without opening the source site.
+- Show a transparent manual fallback while direct APIs and browser-assisted adapters are still ahead.
 - Keep the user in control with an explicit no-silent-submission guardrail.
 
 **Not implemented yet**
@@ -93,7 +94,7 @@ ApplyFlow is 14% complete: the guided, profile-aware surface is working.
 - Simplify tracker/profile import.
 - Real fit scoring and eligibility-aware ranking.
 - Swipe gestures, undo, and queue ranking.
-- Authenticated profile-backed Application Pack generation.
+- Authenticated profile-backed Application Pack generation and direct submission.
 - Application history, reminders, approved autofill, and audit records.
 
 ## Slide 8

@@ -7,14 +7,19 @@ import Sidebar from './components/Sidebar';
 import { cameroonLocations, defaultLocationId, getLocationById } from './data/locations';
 import { fetchJobs, filterJobs, getNewestDate } from './services/JobService';
 import {
-  getAlertedJobIds,
+    getAlertedJobIds,
   getAlertsEnabled,
+  getApplications,
   getSavedJobs,
+
   getSavedSearches,
-  markJobsAlerted,
+    markJobsAlerted,
+  saveApplication,
   saveSearch,
+
   setAlertsEnabled as persistAlertsEnabled,
   toggleSavedJob,
+  updateApplication,
 } from './services/storage';
 
 function App() {
@@ -29,8 +34,10 @@ function App() {
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [applyJob, setApplyJob] = useState(null);
 
-  const [savedJobs, setSavedJobs] = useState(() => getSavedJobs());
+    const [savedJobs, setSavedJobs] = useState(() => getSavedJobs());
+  const [applications, setApplications] = useState(() => getApplications());
   const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
+
   const [alertEnabled, setAlertEnabled] = useState(() => getAlertsEnabled());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -123,6 +130,10 @@ function App() {
     setSavedJobs(toggleSavedJob(job));
   }, []);
 
+  const saveCurrentApplication = useCallback((application) => {
+    setApplications(saveApplication(application));
+  }, []);
+
   const toggleAlerts = useCallback(async () => {
     if (alertEnabled) {
       setAlertEnabled(persistAlertsEnabled(false));
@@ -169,6 +180,10 @@ function App() {
         }}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        applications={applications}
+        onUpdateApplication={(applicationId, patch) => {
+          setApplications(updateApplication(applicationId, patch));
+        }}
       />
       <section className={`map-panel ${appMode === 'remote' ? 'map-panel--remote' : ''}`}>
 
@@ -195,7 +210,7 @@ function App() {
                 <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
 
             </section>
-      <ApplyFlowPanel job={applyJob} onClose={() => setApplyJob(null)} />
+      <ApplyFlowPanel job={applyJob} onClose={() => setApplyJob(null)} onSaveApplication={saveCurrentApplication} />
     </main>
 
   );

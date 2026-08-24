@@ -1,3 +1,4 @@
+import ApplicationQueuePanel from './ApplicationQueuePanel';
 import ProfilePanel from './ProfilePanel';
 
 function formatDate(value) {
@@ -59,6 +60,8 @@ export default function Sidebar({
   onModeChange,
   activeTab,
   onTabChange,
+  applications,
+  onUpdateApplication,
 }) {
 
   const currentLocation = locations.find((location) => location.id === locationId) || locations[0];
@@ -152,7 +155,7 @@ export default function Sidebar({
         )}
       </div>
 
-            {activeTab === 'profile' ? <ProfilePanel onBack={() => onTabChange('discover')} /> : <>
+            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onBack={() => onTabChange('discover')} /> : activeTab === 'profile' ? <ProfilePanel onBack={() => onTabChange('discover')} /> : <>
       <div className="results-header">
 
         <div>

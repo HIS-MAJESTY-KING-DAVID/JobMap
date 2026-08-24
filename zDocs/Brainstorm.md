@@ -56,7 +56,7 @@ The next design discussion should settle which remote sources are allowed in the
 
 ## Current implementation snapshot
 
-The current estimated product progress is **41% overall**. The first profile-aware ApplyFlow surface is now implemented: a user can select a job, review a two-step preparation sheet, inspect a local draft preview informed by the saved local profile, and open the canonical application source. The flow is deliberately user-controlled and does not submit applications automatically. The sidebar now scrolls as one surface and keeps the five section buttons visible on web and mobile.
+The current estimated product progress is **44% overall**. ApplyFlow now has an editable in-site Application Pack: a user can select a job, review and edit the role headline, cover note, and screening answers inside JobMap, save the pack into a local queue, and choose a transparent manual fallback. The flow remains user-controlled and does not submit applications automatically. The sidebar scrolls as one surface and keeps the five section buttons visible on web and mobile.
 
 | Feature area | Progress |
 |---|---:|
@@ -65,7 +65,7 @@ The current estimated product progress is **41% overall**. The first profile-awa
 | Global remote source network | 40% |
 | Global remote eligibility engine | 15% |
 | Swipe discovery queue | 12% |
-| Application Pack generation | 12% |
+| Application Pack generation | 22% |
 | Hybrid assisted application | 5% |
 | Simplify profile/resume import | 5% |
 | Email and Google sign-in | 0% |

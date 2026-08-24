@@ -254,6 +254,26 @@ button { color: inherit; }
 .apply-flow__draft-block span { color: var(--sea); font-family: 'DM Mono', monospace; font-size: 8px; text-transform: uppercase; }
 .apply-flow__draft-block p { margin: 6px 0 0; color: var(--ink); font-size: 10px; line-height: 1.5; }
 .job-detail__actions--secondary { margin-top: 8px; }
+.apply-flow__capability { margin-top: 5px; color: var(--sea); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.apply-flow__editor { display: grid; gap: 12px; margin-top: 16px; }
+.apply-flow__editor label { display: grid; gap: 5px; color: var(--ink); font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+.apply-flow__editor input, .apply-flow__editor textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: 500 11px/1.45 'Manrope', sans-serif; outline: none; }
+.apply-flow__editor input { min-height: 38px; padding: 8px 9px; }
+.apply-flow__editor textarea { min-height: 74px; padding: 8px 9px; resize: vertical; }
+.apply-flow__editor input:focus, .apply-flow__editor textarea:focus { border-color: var(--sea); box-shadow: 0 0 0 3px rgba(25, 82, 51, 0.1); }
+.application-queue { padding: 24px 20px 28px; }
+.application-queue h1 { margin-top: 5px; color: var(--ink); font-size: 26px; letter-spacing: -0.06em; }
+.application-queue__list { display: grid; gap: 10px; margin-top: 18px; }
+.application-item { padding: 14px 13px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.application-item__topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.application-item h2 { margin-top: 8px; color: var(--ink); font-size: 14px; letter-spacing: -0.03em; }
+.application-item > p { margin-top: 4px; color: var(--muted); font-size: 9px; }
+.application-status { padding: 5px 7px; border-radius: 6px; background: #edf5ee; color: var(--sea); font-family: 'DM Mono', monospace; font-size: 8px; text-transform: uppercase; }
+.application-status--cancelled { background: #f4f1ef; color: #8a7971; }
+.application-status--failed { background: #fff0f0; color: #a04b4b; }
+.application-item__actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.application-item__actions > * { min-height: 31px; padding: 0 8px; font-size: 9px; }
+.application-queue__back { margin-top: 18px; }
 .profile-panel { padding: 24px 20px 28px; }
 .profile-panel__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .profile-panel h1 { margin-top: 5px; color: var(--ink); font-size: 26px; letter-spacing: -0.06em; }
@@ -274,6 +294,7 @@ button { color: inherit; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
 @media (max-width: 800px) {
   .profile-panel { padding: 18px 16px 28px; }
+  .application-queue { padding: 18px 16px 28px; }
   .profile-form__grid { grid-template-columns: 1fr; }
 }
 

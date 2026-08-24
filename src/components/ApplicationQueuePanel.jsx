@@ -1,0 +1,57 @@
+const statusLabels = {
+  draft: 'Draft',
+  ready_for_approval: 'Ready for review',
+  needs_user: 'Needs your input',
+  submitted: 'Submitted',
+  failed: 'Failed safely',
+  cancelled: 'Cancelled',
+  manual_fallback: 'Manual fallback',
+};
+
+function formatDate(value) {
+  if (!value) return 'Just now';
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value));
+}
+
+export default function ApplicationQueuePanel({ applications, onUpdateApplication, onBack }) {
+  return (
+    <section className="application-queue" aria-label="ApplyFlow application queue">
+      <div className="profile-panel__heading">
+        <div>
+          <p className="results-kicker">ApplyFlow queue</p>
+          <h1>Applications</h1>
+        </div>
+        <span className="profile-panel__status">Local tracker</span>
+      </div>
+      <p className="profile-panel__intro">Packs stay in JobMap until you choose the next action. Nothing here is submitted automatically.</p>
+      {applications.length === 0 ? (
+        <div className="state-card"><strong>Your queue is empty.</strong><span>Open a job, start ApplyFlow, and save an application pack here.</span></div>
+      ) : (
+        <div className="application-queue__list">
+          {applications.map((application) => (
+            <article className="application-item" key={application.id}>
+              <div className="application-item__topline">
+                <span className="job-detail__source">{application.job?.company || 'Employer'}</span>
+                <span className={`application-status application-status--${application.status}`}>{statusLabels[application.status] || application.status}</span>
+              </div>
+              <h2>{application.job?.title || application.pack?.targetRole || 'Untitled application'}</h2>
+              <p>{application.job?.location || 'Location not specified'} · Updated {formatDate(application.updatedAt || application.createdAt)}</p>
+              <div className="application-item__actions">
+                {application.status !== 'cancelled' && application.status !== 'submitted' && (
+                  <button className="secondary-action" type="button" onClick={() => onUpdateApplication(application.id, { status: 'needs_user' })}>Needs my input</button>
+                )}
+                {application.status !== 'cancelled' && (
+                  <button className="secondary-action" type="button" onClick={() => onUpdateApplication(application.id, { status: 'cancelled' })}>Cancel</button>
+                )}
+                {application.job?.applyUrl && application.status !== 'submitted' && (
+                  <a className="secondary-action" href={application.job.applyUrl} target="_blank" rel="noopener noreferrer">Continue manually ↗</a>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+      <button className="secondary-action application-queue__back" type="button" onClick={onBack}>Back to jobs</button>
+    </section>
+  );
+}

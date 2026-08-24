@@ -2,6 +2,7 @@ const SAVED_JOBS_KEY = 'jobmap.savedJobs.v1';
 const SAVED_SEARCHES_KEY = 'jobmap.savedSearches.v1';
 const ALERTS_KEY = 'jobmap.alertsEnabled.v1';
 const ALERTED_JOBS_KEY = 'jobmap.alertedJobs.v1';
+const APPLICATIONS_KEY = 'jobmap.applications.v1';
 
 function read(key) {
   try {
@@ -73,5 +74,26 @@ export function getAlertedJobIds() {
 export function markJobsAlerted(jobIds) {
   const next = [...new Set([...getAlertedJobIds(), ...jobIds])].slice(-500);
   write(ALERTED_JOBS_KEY, next);
+  return next;
+}
+
+export function getApplications() {
+  return read(APPLICATIONS_KEY);
+}
+
+export function saveApplication(application) {
+  const current = getApplications().filter((item) => item.id !== application.id && item.jobId !== application.jobId);
+  const next = [{ ...application, updatedAt: new Date().toISOString() }, ...current];
+  write(APPLICATIONS_KEY, next);
+  return next;
+}
+
+export function updateApplication(applicationId, patch) {
+  const next = getApplications().map((application) => (
+    application.id === applicationId
+      ? { ...application, ...patch, updatedAt: new Date().toISOString() }
+      : application
+  ));
+  write(APPLICATIONS_KEY, next);
   return next;
 }
