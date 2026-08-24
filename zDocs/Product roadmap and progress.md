@@ -89,7 +89,7 @@ These percentages are **product-delivery estimates**, not automated test coverag
 
 | CV/document storage | 0% | Requirements defined | Secure upload, private storage, metadata, versioning, deletion, and document selection |
 | Simplify tracker CSV import | 0% | Import design defined from official CSV documentation | Mapping preview, validation, deduplication, status/date/link import, and confirmation |
-| Simplify profile/resume import | 5% | Resume/profile import lane defined; no parser or UI yet | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
+| Simplify profile/resume import | 18% | User-provided CSV, JSON, TXT, Markdown, and pasted profile text are parsed with field-level preview and confirmation; resume document extraction remains next | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
 | Swipe discovery queue | 12% | Global Remote entry point, remote feed, and first ApplyFlow launch action are implemented; swipe gestures and queue ranking are not yet built | Swipe actions, queue ranking, undo, saved state, and explainable recommendations |
 | Fit and trust scoring | 0% | Concept defined | Explainable fit, source trust, remote eligibility badges, and no opaque exclusion |
 | Application Pack generation | 22% | Users can edit name, target role, cover note, and screening answers inside JobMap, then save an approved local pack; versioned CV and tailored generation are next | Versioned CV, cover message, screening answers, review, and audit record |
@@ -100,7 +100,7 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Email and push notifications | 5% | Local notification preference exists | Consent, unsubscribe, matching jobs, delivery logs, and notification controls |
 | Global analytics and quality dashboard | 0% | Not implemented | Source health, freshness, application funnel, and privacy-safe product metrics |
 
-**Estimated overall product progress: 44%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, and the first in-site editable ApplyFlow queue; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
+**Estimated overall product progress: 46%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
 
 ## Roadmap
 

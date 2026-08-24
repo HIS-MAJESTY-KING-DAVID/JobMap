@@ -56,7 +56,7 @@ The next design discussion should settle which remote sources are allowed in the
 
 ## Current implementation snapshot
 
-The current estimated product progress is **44% overall**. ApplyFlow now has an editable in-site Application Pack: a user can select a job, review and edit the role headline, cover note, and screening answers inside JobMap, save the pack into a local queue, and choose a transparent manual fallback. The flow remains user-controlled and does not submit applications automatically. The sidebar scrolls as one surface and keeps the five section buttons visible on web and mobile.
+The current estimated product progress is **46% overall**. ApplyFlow now has an editable in-site Application Pack and a user-confirmed Simplify profile bridge: a user can select a job, review and edit the role headline, cover note, and screening answers inside JobMap, import selected profile fields from a user-provided Simplify export or copied text, save the pack into a local queue, and choose a transparent manual fallback. The flow remains user-controlled and does not submit applications automatically. The sidebar scrolls as one surface and keeps the five section buttons visible on web and mobile.
 
 | Feature area | Progress |
 |---|---:|
@@ -67,7 +67,7 @@ The current estimated product progress is **44% overall**. ApplyFlow now has an 
 | Swipe discovery queue | 12% |
 | Application Pack generation | 22% |
 | Hybrid assisted application | 5% |
-| Simplify profile/resume import | 5% |
+| Simplify profile/resume import | 18% |
 | Email and Google sign-in | 0% |
 
-The remaining ApplyFlow work is profile-backed tailoring, Simplify import, eligibility-aware ranking, swipe gestures, application history, form assistance through approved paths, and final user confirmation with audit records.
+The remaining ApplyFlow work is profile-backed tailoring, Simplify tracker CSV and resume-document import, eligibility-aware ranking, swipe gestures, application history, form assistance through approved paths, and final user confirmation with audit records.
