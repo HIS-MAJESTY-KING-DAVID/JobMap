@@ -12,13 +12,18 @@ The UI now adds a city registry covering All Cameroon and major cities across th
 
 | Source family | Coverage | Automation state | Next action |
 |---|---|---|---|
-| ReliefWeb v2 Jobs API | Cameroon-wide humanitarian and development roles | Adapter implemented but approval-gated | Request an approved appname from ReliefWeb, add it to `sources.json`, then enable the source. |
+| FNE public employment service | Cameroon-wide public employment-service vacancies | HTML adapter implemented and enabled | Keep the adapter rate-limited, preserve official detail links, and monitor markup changes. |
+| ReliefWeb Cameroon RSS | Cameroon-wide humanitarian and development roles | Public RSS adapter implemented and enabled | Retain original ReliefWeb URLs and attribution; request an approved API appname separately for richer fields. |
+| ReliefWeb v2 Jobs API | Cameroon-wide humanitarian and development roles | Adapter implemented but approval-gated | Request an approved appname from ReliefWeb, add it to `sources.json`, then enable the API source. |
 | Greenhouse public boards | Employer-specific; location fields may span Cameroon | Adapter implemented | Add verified board tokens for employers with Cameroon roles. |
 | Lever public postings | Employer-specific; location fields may span Cameroon | Adapter implemented | Add verified public site names for employers with Cameroon roles. |
 | RSS/Atom | Local job boards, NGOs, universities, and employers that publish feeds | Adapter implemented | Collect and validate publisher feeds one by one. |
+| JEME / MINEFOP | Cameroon-wide jobs and internships, plus training and government opportunities | Candidate source; no feed identified | Confirm reuse terms or obtain a supported export/API before adding an adapter, and filter non-job records. |
+| Emploi.cm | Cameroon job-board listings with city and sector filters | Candidate source; permission/feed required | Request a publisher feed or written permission before automation. |
 | Orange Cameroon Taleo | Public employer board with current CM-Cameroon and regional roles | Candidate source | Verify a stable public feed or supported endpoint before enabling automation. |
 
-The source candidate inventory lives in [`data/source-candidates.json`](../data/source-candidates.json). It intentionally separates promising public pages from machine-readable feeds that are ready for scheduled ingestion. The ingestion worker does not scrape arbitrary HTML result pages or bypass access controls.
+The source candidate inventory lives in [`data/source-candidates.json`](../data/source-candidates.json). It intentionally separates promising public pages from machine-readable feeds that are ready for scheduled ingestion. The ingestion worker does not scrape arbitrary HTML result pages or bypass access controls. The FNE adapter is an explicit exception for the official public vacancy listing, uses a bounded page size and concurrency, and follows each public detail page only to obtain fields that are not present in the listing card. It never submits applications or accesses candidate accounts.
+
 
 ## ReliefWeb approval requirement
 
@@ -31,9 +36,12 @@ Once approved, the source query should use the jobs resource, a Cameroon country
 ```text
 Cameroon source registry
         │
+                ├── FNE public employment service
+        ├── ReliefWeb Cameroon RSS
         ├── ReliefWeb v2 jobs API
         ├── Greenhouse public employer boards
         ├── Lever public employer boards
+
         └── approved RSS / Atom feeds
         │
         ▼
@@ -50,7 +58,7 @@ The script is deterministic. It does not submit applications, invent missing fac
 
 ## How new sources enter the system
 
-Add a source entry to `data/sources.json` with an adapter type, label, location scope, default location, and source-specific configuration. Keep `enabled` false until the endpoint has been tested, the publisher’s terms have been reviewed, and the returned records contain enough fields for a trustworthy opening. Source errors and counts are written to `public/ingestion-meta.json`.
+Add a source entry to `data/sources.json` with an adapter type, label, location scope, default location, and source-specific configuration. Keep `enabled` false until the endpoint has been tested, the publisher’s terms have been reviewed, and the returned records contain enough fields for a trustworthy opening. Source errors and counts are written to `public/ingestion-meta.json`. For public HTML sources such as FNE, use a dedicated adapter rather than the generic RSS path, enforce bounded pagination/concurrency, preserve the official detail URL, and prefer source-provided expiry dates over a generic TTL.
 
 The recommended onboarding sequence is to start with official employer boards and public institutional feeds in each region, then add carefully selected aggregators only when their terms and freshness are clear. For each new source, record its owner, endpoint, refresh expectation, location coverage, deduplication key, expiry policy, and failure contact in the source registry or a future admin database.
 

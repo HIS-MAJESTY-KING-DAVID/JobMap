@@ -1,33 +1,55 @@
-# JobMap Cameroon-wide product direction
+# JobMap product brainstorm
 
-## Core value proposition
+## Product direction
 
-JobMap helps people find **current job openings across Cameroon**. Geography is a primary search dimension: users choose All Cameroon or a city, optionally narrow by radius, inspect roles in a list and on a map, and open the original source listing.
+JobMap should become a **Cameroon-first gateway to work anywhere**. Cameroon Local remains the trusted map for onsite and hybrid roles across all regions. Global Remote becomes a worldwide remote-job discovery and application workflow optimized for people applying from Cameroon.
 
-## First-release boundary
+The product should compete with swipe-based autoapply tools by combining speed with better context. Job seekers should know whether a role accepts applicants from Cameroon, whether the hours are workable, whether the contract is realistic, whether the source is trustworthy, and what the application will contain before they submit anything.
 
-JobMap is a **job-posting map**, not a directory of businesses that may or may not be hiring. A role is eligible for publication only when it has an application or source URL. Each record should carry its source, posting date where available, last verification time, expiry time, and either source-provided coordinates or a clearly marked city/region estimate.
+## ApplyFlow
 
-## Data strategy
+ApplyFlow is the main differentiating feature. It provides a swipe queue, explainable fit and eligibility summaries, a reusable profile, tailored application packs, and an application tracker. The user can reject, save, or apply to each role. The default application experience is hybrid: official APIs and approved integrations where available, guided browser handoff or assisted form completion elsewhere, and explicit final confirmation before submission.
 
-The national ingestion layer uses public, source-specific endpoints rather than arbitrary search-result scraping. Supported adapter families are ReliefWeb v2, Greenhouse public job boards, Lever public postings, and approved RSS/Atom feeds. The source registry distinguishes ready, configuration-required, verification-required, and approval-required sources.
+JobMap should automate repetitive preparation without making consequential decisions for the user. It must not invent qualifications, answer sensitive questions without user input, submit duplicates, or silently submit an application.
 
-Orange Cameroon’s public Taleo board is a promising employer source because it exposes current public openings and Cameroon regional locations, but it remains a candidate until its machine-readable feed endpoint is verified. ReliefWeb is implemented but requires an approved appname before activation.
+## Simplify support
 
-## User experience
+The first Simplify integration should accept a user-provided Simplify Job Tracker CSV and import saved or applied jobs into JobMap Tracker. A separate resume/profile import should accept a PDF, DOCX, or pasted profile text and produce a reviewable draft. The import must show field mapping, conflicts, deduplication, and confirmation.
 
-The current vertical slice includes national city selection, radius filtering, title/company/skill/location search, work-mode and employment filters, synchronized marker selection, source-linked job details, location provenance, saved openings, saved searches, and browser-native alert permission with deduplicated matching for newly loaded openings.
+JobMap should not request Simplify credentials or read private browser-extension storage. A future partner/API integration can add structured profile import only if Simplify documents and authorizes it. The public Simplify help center documents tracker CSV import/export, but not a public profile API. [1]
 
-## Architecture roadmap
+## Mobile-first PWA
 
-1. **Now:** Static frontend plus repository-native scheduled ingestion, deterministic normalization, deduplication, TTL expiry, location fallback, and source-health metadata.
-2. **Next:** Add verified employer and institutional feeds for each region, activate the approved ReliefWeb adapter, and monitor coverage and freshness by source.
-3. **Scale:** Move adapters and normalized records into a hosted backend/database with retries, raw-record history, review queues, source-health monitoring, and an API consumed by the same frontend contract.
-4. **Later:** Add authenticated accounts, server-side email/SMS/WhatsApp alerts, salary intelligence, commute-time estimates, employer tools, and analytics.
+The mobile product should use bottom navigation for Discover, Swipe, Saved, Tracker, and Profile. Cameroon Local should open with feed plus map context; Global Remote should open with the swipe queue. Job cards need large thumb targets, clear source and eligibility badges, concise summaries, one-handed filters, and shareable links.
 
-## Open validation questions
+PWA capabilities include installation, an offline application shell, cached saved jobs and tracker state, document upload, resilient loading, accessible focus states, and opt-in notifications. Offline data must always display last verified and expiry timestamps.
 
-- Which approved sources consistently produce legitimate openings in each Cameroon region?
-- How should remote roles be represented in city and radius searches?
-- What freshness window is trustworthy for each source family?
-- Which fields should be mandatory before a role is published?
+## Account and profile model
+
+Discovery remains public. Email and Google sign-in unlock saved preferences, cross-device sync, profile versions, CV storage, ApplyFlow, application history, and alerts. The durable model should include an account, professional profile, work authorization, languages, timezone, preferred locations, salary preferences, documents, saved jobs, saved searches, applications, application events, consent, and notification settings.
+
+## Global remote eligibility
+
+Remote eligibility must be a first-class field, not an assumption. Candidate badges include Cameroon eligible, Africa eligible, worldwide remote, location unclear, and not eligible. Matching should consider country restrictions, contractor or employee status, timezone overlap, language, salary basis and currency, sponsorship, travel, and required equipment or connectivity.
+
+## Source strategy
+
+Use official institutional sources, public employment services, verified employer ATS endpoints, authorized RSS/Atom feeds, and reputable platforms with clear freshness and reuse terms. Preserve canonical links and attribution. Do not scrape sources that restrict automated use without permission. FNE and ReliefWeb Cameroon RSS are the first credible source additions; JEME/MINEFOP and Emploi.cm require terms or feed review.
+
+## Release roadmap
+
+| Release | Outcome | Main scope |
+|---|---|---|
+| R0 | Trustworthy foundation | Source health, refresh reliability, remote-location semantics, and mobile baseline. |
+| R1 | Installable JobMap | Mobile navigation, PWA shell, offline saved state, responsive cards, and shareable links. |
+| R2 | Portable user profile | Email/Google sign-in, preferences, CV storage, profile versions, Simplify tracker import, and resume/profile import. |
+| R3 | Remote ApplyFlow | Global remote feeds, eligibility engine, swipe queue, Fit + Trust cards, Application Pack, and tracker. |
+| R4 | Controlled automation | Official APIs, approved browser handoff, final confirmation, audit trail, duplicate prevention, and source-specific controls. |
+
+## Open questions
+
+The next design discussion should settle which remote sources are allowed in the first global launch, which fields are mandatory before a job can enter ApplyFlow, whether the first profile parser uses deterministic resume extraction or assisted AI extraction, and which application sites can support approved autofill. The product should launch with a trustworthy assisted flow before attempting high-volume batch submission.
+
+## Reference
+
+[1]: https://help.simplify.jobs/articles/2140179-using-the-job-tracker "Simplify Help: Using the Job Tracker"

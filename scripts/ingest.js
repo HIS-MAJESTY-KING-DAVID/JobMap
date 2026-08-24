@@ -51,15 +51,48 @@ function cleanText(value = '') {
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+        .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
+    .replace(/&#39;|&#x27;/gi, "'")
     .replace(/\s+/g, ' ')
+
     .trim();
 }
 
 function firstText(xml, tag) {
   const match = xml.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i'));
   return match ? cleanText(match[1]) : '';
+}
+
+function firstMatch(text, pattern) {
+  const match = text.match(pattern);
+  return match ? cleanText(match[1]) : '';
+}
+
+const frenchMonths = {
+  janvier: 0,
+  février: 1,
+  fevrier: 1,
+  mars: 2,
+  avril: 3,
+  mai: 4,
+  juin: 5,
+  juillet: 6,
+  août: 7,
+  aout: 7,
+  septembre: 8,
+  octobre: 9,
+  novembre: 10,
+  décembre: 11,
+  decembre: 11,
+};
+
+function parseFrenchDate(value) {
+  const match = String(value || '').toLowerCase().match(/(\d{1,2})\s+([a-zûé]+)\s+(\d{4})/i);
+  if (!match) return '';
+  const month = frenchMonths[match[2]];
+  if (month === undefined) return '';
+  return new Date(Date.UTC(Number(match[3]), month, Number(match[1]), 12)).toISOString();
 }
 
 function parseLocation(value, fallback = '') {
@@ -98,7 +131,7 @@ function normalizeJob(raw, source) {
   const description = cleanText(raw.description || raw.content || 'No description supplied by the source.');
   const externalId = raw.externalId || raw.id || raw.url || `${title}-${company}-${locationData.location}`;
   const postedAt = toIso(raw.postedAt || raw.createdAt || raw.updatedAt, now);
-  const expiresAt = new Date(new Date(postedAt).getTime() + DEFAULT_TTL_DAYS * DAY).toISOString();
+  const expiresAt = raw.expiresAt ? toIso(raw.expiresAt) : new Date(new Date(postedAt).getTime() + DEFAULT_TTL_DAYS * DAY).toISOString();
 
   return {
     id: `${source.id}:${slugify(externalId)}`,
@@ -222,6 +255,68 @@ function fetchRss(source) {
   });
 }
 
+function parseFneCards(html, source) {
+  const cards = html.split(/<div class="offre-card h-100">/i).slice(1);
+  return cards.map((card) => {
+    const url = firstMatch(card, /href="(https:\/\/emploi\.fnecm\.org\/offre\/[^"?#]+)"/i);
+    const title = firstMatch(card, /<div class="offre-card-metier">[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/i);
+    const location = firstMatch(card, /<!-- Lieu -->[\s\S]*?<span>([\s\S]*?)<\/span>/i);
+    const contract = firstMatch(card, /<!-- Badges type contrat \+ catégorie -->[\s\S]*?<span class="badge"[^>]*>([\s\S]*?)<\/span>/i);
+    const description = firstMatch(card, /class="offre-card-extrait">([\s\S]*?)<\/p>/i);
+    const agency = firstMatch(card, /<!-- Agence \+ postes -->[\s\S]*?<span class="text-muted">([\s\S]*?)<\/span>/i);
+    const positionsText = firstMatch(card, /<span class="text-muted">(\d+)\s+postes<\/span>/i);
+    return {
+      externalId: url || title,
+      title,
+      location,
+      description,
+      company: source.company || source.label,
+      url,
+      applyUrl: url,
+      employmentType: contract,
+      tags: [agency, positionsText ? `${positionsText} postes` : ''].filter(Boolean),
+    };
+  }).filter((job) => job.url && job.title);
+}
+
+function parseFneDetail(html) {
+  const description = firstMatch(html, /<h5[^>]*>[\s\S]*?Missions \/ Tâches[\s\S]*?<\/h5>[\s\S]*?<div[^>]*>([\s\S]*?)<\/div>/i);
+  const employmentType = firstMatch(html, /Type de contrat<\/dt>[\s\S]*?<dd[^>]*>([\s\S]*?)<\/dd>/i);
+  const location = firstMatch(html, /Lieu de travail<\/dt>[\s\S]*?<dd[^>]*>([\s\S]*?)<\/dd>/i);
+  const postedAt = parseFrenchDate(firstMatch(html, /Date de dépôt<\/dt>[\s\S]*?<dd[^>]*>([\s\S]*?)<\/dd>/i));
+  const expiresAt = parseFrenchDate(firstMatch(html, /Date de validité<\/dt>[\s\S]*?<dd[^>]*>([\s\S]*?)<\/dd>/i));
+  const positions = firstMatch(html, /Poste\(s\) disponible\(s\)<\/dt>[\s\S]*?<dd[^>]*>([\s\S]*?)<\/dd>/i);
+  return { description, employmentType, location, postedAt, expiresAt, positions };
+}
+
+async function fetchFne(source) {
+  const firstUrl = new URL(source.url);
+  firstUrl.searchParams.set('par_page', source.pageSize || '12');
+  firstUrl.searchParams.set('page', '1');
+  const firstHtml = await fetchText(firstUrl.toString());
+  const pageCount = Number(firstMatch(firstHtml, /Page\s+1\s*\/\s*(\d+)/i)) || 1;
+  const pages = [firstHtml];
+  for (let page = 2; page <= pageCount; page += 1) {
+    const pageUrl = new URL(firstUrl);
+    pageUrl.searchParams.set('page', String(page));
+    pages.push(await fetchText(pageUrl.toString()));
+  }
+  const cards = pages.flatMap((html) => parseFneCards(html, source));
+  const detailed = [];
+  for (let index = 0; index < cards.length; index += 4) {
+    const batch = cards.slice(index, index + 4);
+    const details = await Promise.all(batch.map(async (card) => {
+      try {
+        return parseFneDetail(await fetchText(card.url));
+      } catch {
+        return {};
+      }
+    }));
+    detailed.push(...batch.map((card, detailIndex) => ({ ...card, ...details[detailIndex] })));
+  }
+  return detailed;
+}
+
 async function loadSources() {
   const config = JSON.parse(await fs.readFile(SOURCES_FILE, 'utf8'));
   return config.sources || [];
@@ -250,13 +345,16 @@ async function main() {
   for (const source of sources.filter((item) => item.enabled)) {
     const startedAt = Date.now();
     try {
-      const rawJobs = source.type === 'greenhouse'
+            const rawJobs = source.type === 'greenhouse'
         ? await fetchGreenhouse(source)
         : source.type === 'lever'
           ? await fetchLever(source)
           : source.type === 'reliefweb'
             ? await fetchReliefWeb(source)
-            : await fetchRss(source);
+            : source.type === 'fne'
+              ? await fetchFne(source)
+              : await fetchRss(source);
+
       const normalized = rawJobs.map((job) => normalizeJob(job, source));
       normalized.forEach((job) => allJobs.set(dedupeKey(job), job));
       sourceReports.push({ id: source.id, label: source.label, status: 'ok', fetched: normalized.length, durationMs: Date.now() - startedAt });

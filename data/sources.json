@@ -12,6 +12,19 @@
       "notes": "Apply for an approved ReliefWeb API appname before enabling this source."
     },
     {
+      "id": "fne-cameroon",
+      "label": "FNE — Fonds National de l'Emploi",
+      "type": "fne",
+      "enabled": true,
+      "url": "https://emploi.fnecm.org/offres",
+      "pageSize": 12,
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "verified-public",
+      "owner": "Fonds National de l'Emploi (FNE), Cameroon",
+      "notes": "Public vacancy listings; applications remain on the official FNE portal."
+    },
+    {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "type": "greenhouse",
@@ -20,6 +33,18 @@
       "defaultLocation": "Cameroon",
       "scope": "Cameroon-wide",
       "status": "verified"
+    },
+    {
+      "id": "reliefweb-cameroon-rss",
+      "label": "ReliefWeb jobs — Cameroon (RSS)",
+      "type": "rss",
+      "enabled": true,
+      "url": "https://reliefweb.int/jobs/rss.xml?advanced-search=%28C49%29",
+      "defaultLocation": "Cameroon",
+      "scope": "Cameroon-wide",
+      "status": "verified-public",
+      "owner": "ReliefWeb, a service provided by UN OCHA",
+      "notes": "Use the public RSS feed; retain original ReliefWeb job URLs and attribution."
     },
     {
       "id": "lever-cameroon-template",

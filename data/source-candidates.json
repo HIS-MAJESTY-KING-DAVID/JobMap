@@ -1,6 +1,6 @@
 {
   "candidates": [
-    {
+        {
       "id": "reliefweb-api",
       "name": "ReliefWeb Jobs API",
       "coverage": "Cameroon-wide humanitarian and development roles",
@@ -9,6 +9,25 @@
       "status": "approval-required",
       "nextStep": "Request an approved appname, then enable reliefweb-cameroon in sources.json."
     },
+    {
+      "id": "reliefweb-cameroon-rss",
+      "name": "ReliefWeb Cameroon Jobs RSS",
+      "coverage": "Cameroon-wide humanitarian and development roles",
+      "url": "https://reliefweb.int/jobs?advanced-search=%28C49%29",
+      "machineEndpoint": "https://reliefweb.int/jobs/rss.xml?advanced-search=%28C49%29",
+      "status": "ready-public-feed",
+      "nextStep": "Enable with attribution and retain the original ReliefWeb vacancy URL."
+    },
+    {
+      "id": "fne-cameroon",
+      "name": "Fonds National de l'Emploi (FNE)",
+      "coverage": "Cameroon-wide public employment service vacancies",
+      "url": "https://emploi.fnecm.org/offres",
+      "machineEndpoint": "https://emploi.fnecm.org/offres",
+      "status": "ready-public-listing",
+      "nextStep": "Use the rate-limited HTML adapter, preserve FNE detail links, and keep applications on the FNE portal."
+    },
+
     {
       "id": "orange-cameroon-taleo",
       "name": "Orange Cameroon careers",
@@ -37,9 +56,28 @@
       "status": "ready-with-site-name",
       "nextStep": "Add approved employer site names and verify location coverage."
     },
+        {
+      "id": "jeme-minefop",
+      "name": "JEME / MINEFOP opportunities",
+      "coverage": "Cameroon-wide jobs, internships, training, and government opportunities",
+      "url": "https://www.emploijeune.cm/en/jobs/",
+      "machineEndpoint": null,
+      "status": "partnership-or-terms-review",
+      "nextStep": "Confirm reuse terms or obtain a supported export/API before adding an adapter; filter out training and scholarship records."
+    },
+    {
+      "id": "emploi-cm",
+      "name": "Emploi.cm",
+      "coverage": "Cameroon job-board listings with city and sector filters",
+      "url": "https://www.emploi.cm/",
+      "machineEndpoint": null,
+      "status": "permission-required",
+      "nextStep": "Request a publisher feed or written permission; do not scrape while the site disallows GPTBot and limits use to reference."
+    },
     {
       "id": "local-rss-feeds",
       "name": "Local employer, university, NGO, and job-board RSS/Atom feeds",
+
       "coverage": "Cameroon-wide depending on publisher",
       "url": null,
       "machineEndpoint": "Configured feed URL",

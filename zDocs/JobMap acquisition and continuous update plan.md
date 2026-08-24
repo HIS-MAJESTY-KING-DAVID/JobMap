@@ -1,62 +1,86 @@
 # JobMap acquisition and continuous update plan
 
-JobMap should treat job acquisition as a **source pipeline**, not as logic embedded in the map. The frontend reads a stable `public/jobs.json` contract. Upstream source adapters produce normalized postings, and a scheduled refresh publishes the newest active set.
+JobMap should treat job acquisition as a **source pipeline** and application preparation as a separate user-controlled workflow. The frontend consumes a stable normalized feed. Source adapters produce postings with provenance and freshness. ApplyFlow consumes eligible postings and produces reviewable application packs and tracked application events.
 
-## Product contract
-
-The first release is a **job-posting map**. Every opening should carry a title, employer, location, coordinates, application URL, source, posting date where available, last verification time, and expiry time. If a source only identifies an employer without an active vacancy, it should not be presented as an open job.
-
-## Two viable operating models
+## Operating model
 
 | Approach | Tradeoffs | Cost | Setup complexity |
 |---|---|---:|---:|
-| Repository-native refresh | A scheduled script fetches configured Greenhouse, Lever, or RSS/Atom sources, writes the static feed, and commits only changes. Very cheap and easy to inspect, but depends on source configuration and repository workflows. | Low; uses the repository’s existing automation allowance. | Low |
-| Hosted ingestion service | A backend worker stores raw and normalized records in a database, tracks source health, preserves history, retries failures, exposes an API, and supports an admin screen. Better for many sources, alerting, analytics, and user-specific radius searches, but requires hosting, secrets, schema migrations, and operations. | Usage-based hosting and database cost. | Medium to high |
+| Repository-native refresh | Simple to inspect and inexpensive. Good for public feeds and initial source validation, but user profiles and applications cannot live safely in a static repository. | Low | Low |
+| Hosted ingestion and user platform | Supports global sources, retries, source health, accounts, CV storage, application history, alerts, and cross-device sync. Requires backend, database, storage, secrets, and operations. | Usage-based | Medium to high |
+| Hybrid migration | Keep repository refresh for public feed export while moving profiles, ApplyFlow, and application tracking to a hosted backend. Preserves the current feed contract and reduces migration risk. | Moderate | Medium |
 
-The repository now implements the **first model** because it matches the current static app and creates a clean vertical slice without prematurely adding a database. When the number of sources, cities, or refresh frequency grows, the same normalized contract can move behind a hosted API without rewriting the map UI.
+The recommended path is a **hybrid migration**. The repository workflow remains a fallback and feed-export mechanism, while user-specific functionality moves behind authenticated backend procedures.
+
+## Acquisition lanes
+
+| Lane | Coverage | Source quality requirement | Product surface |
+|---|---|---|---|
+| Cameroon Local | Onsite and hybrid jobs across Cameroon | FNE, ReliefWeb, institutions, authorized local feeds, verified employer boards | Map, feed, radius, source trust |
+| Global Remote | Remote jobs available to applicants in Cameroon | Public feeds, official ATS endpoints, authorized aggregators, clear remote eligibility | Feed, swipe queue, eligibility badge |
+| Employer direct | Specific companies hiring in Cameroon or remotely | Greenhouse, Lever, Taleo, or documented employer endpoint | Feed and direct application |
+| User-imported | Jobs already tracked by the user | Simplify CSV or user-provided files | Tracker and profile |
+
+The source registry must record owner, endpoint, terms or permission state, location coverage, refresh expectation, canonical URL, field completeness, expiry policy, deduplication key, and failure contact. The system should prefer credible current records over maximum volume.
 
 ## Current pipeline
 
 ```text
-Configured source registry
-        │
-        ├── Greenhouse public job board endpoint
-        ├── Lever public postings endpoint
-        └── RSS / Atom feed
-        │
-        ▼
-Fetch → normalize → add location coordinates → deduplicate
-        │
-        ▼
-Preserve unseen records until expiry → publish public/jobs.json
-        │
-        ▼
-Frontend fetches the feed → filters → map + results cards
+Source registry
+    │
+    ├── Cameroon institutional sources: FNE, ReliefWeb RSS, future JEME/API or authorized feeds
+    ├── Global remote feeds and official employer ATS endpoints
+    ├── User-provided Simplify tracker/profile imports
+    │
+    ▼
+Fetch → validate provenance → normalize → resolve location and remote eligibility
+    │
+    ▼
+Deduplicate → preserve source link → apply expiry → record source health
+    │
+    ▼
+Public feed + authenticated user feed
+    │
+    ├── Cameroon Local: map and radius experience
+    └── Global Remote: swipe and ApplyFlow experience
 ```
 
-The script is intentionally deterministic. It does not scrape search-result pages, submit applications, or invent missing facts. A source adapter may be added only when the source provides a stable public endpoint or an explicitly authorized feed.
+The deterministic ingestion layer does not submit applications or invent missing facts. The application layer may prepare a CV or answer draft, but final user confirmation is required unless a specific supported integration has been explicitly approved by the user.
 
-## How new sources enter the system
+## Simplify import plan
 
-Edit `data/sources.json` and add a source entry. Greenhouse requires a board token, Lever requires the public site name, and RSS/Atom requires a feed URL. Set `enabled` to `true` only after verifying that the source is allowed to be consumed and that its location data is useful. The current registry keeps examples disabled so the default build cannot depend on an unverified third-party endpoint.
+Simplify’s documented tracker export/import is CSV-based. JobMap should accept the user’s exported CSV, validate required Company name and Position Title fields, map Location when present, deduplicate against existing applications, and show a preview before saving. This imports the tracker, not necessarily the reusable Simplify profile.
 
-For a Douala launch, start with a small employer registry of companies that are known to hire locally. Add their public Greenhouse or Lever board identifiers when available, then add approved local RSS/Atom feeds. This is better than broad scraping because it keeps provenance clear and gives you a source-by-source quality check.
+Profile import is a separate flow. JobMap accepts a user-provided resume PDF/DOCX or pasted profile text, extracts candidate fields into a draft, and asks the user to verify every field before it becomes an approved profile version. A future structured Simplify profile import requires a documented export or authorized API. JobMap should never ask for Simplify credentials or access private extension storage. [1]
 
-## Data quality rules
+## Accounts, documents, and privacy
 
-The pipeline creates a stable identifier from the source and external posting ID where available. It also deduplicates using normalized title, company, and location. Each successful fetch updates `lastVerifiedAt`. Postings are removed only after `expiresAt`, so a temporary upstream outage does not erase the map. Source errors are written to `public/ingestion-meta.json` for inspection.
+Anonymous discovery is public. Email and Google sign-in are required for saved preferences, cross-device synchronization, uploaded CVs, application packs, applications, and notifications. CV bytes and generated documents belong in private object storage; the database stores metadata and controlled references. Users need consent, access, retention, deletion, account-linking, and disconnect controls.
 
-The next production improvements should be a durable database, a raw-record archive, per-source retry/backoff, a review queue for uncertain locations, and a source-health dashboard. The frontend should continue consuming the same fields so that this infrastructure can be upgraded independently.
+## Refresh and reliability
 
-## Automatic refresh
+The repository workflow currently runs every six hours and can be started manually. Each refresh fetches enabled source adapters and writes `public/jobs.json` and `public/ingestion-meta.json`. Before global launch, add per-source timeout, retry/backoff, concurrency limits, health status, freshness thresholds, and an alert when a source repeatedly fails.
 
-`.github/workflows/refresh-jobs.yml` runs the ingestion script every six hours and can also be started manually. It installs dependencies, fetches enabled sources, publishes `public/jobs.json`, writes ingestion metadata, and commits only when the feed changes. A static deployment that rebuilds on repository pushes will therefore receive the updated map automatically.
+A source failure must not erase valid prior jobs immediately. A posting should remain until its source-specific expiry or a confirmed removal. The UI should expose last verified time and expiry so users can judge freshness.
 
-For a higher-frequency or larger-scale system, move the worker and storage to a hosted backend with a scheduled job. Keep the repository workflow as a fallback or nightly export. Do not put API keys in the frontend; source credentials, if a provider ever requires them, belong in server-side secrets.
+## Progress tracker
 
-## Official source references
+Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **25% overall**, weighted toward the working Cameroon discovery foundation. Global remote discovery, account persistence, mobile PWA, Simplify import, ApplyFlow, and controlled automation are mostly planned rather than implemented.
 
-- [Greenhouse Job Board API overview](https://support.greenhouse.io/hc/en-us/articles/10568627186203-Greenhouse-API-overview)
-- [Greenhouse Job Board API documentation](https://developers.greenhouse.io/job-board.html)
-- [Lever developer documentation](https://hire.lever.co/developer/documentation)
-- [GitHub Actions scheduled workflows](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule)
+## Delivery sequence
+
+| Stage | Deliverable | Exit condition |
+|---|---|---|
+| Foundation | Reliable source refresh and mobile baseline | Sources are observable, failures are non-destructive, and core flows work on phone screens. |
+| PWA | Installable mobile experience | Install, offline saved state, share links, and responsive navigation pass QA. |
+| Accounts | Email/Google account and profile | Preferences, documents, and profile versions persist securely across devices. |
+| Imports | Simplify tracker CSV and resume/profile import | User sees mappings and confirms before data is saved. |
+| Remote | Global remote feed and eligibility | Cameroon-based users see only clearly labelled eligible or uncertain roles. |
+| ApplyFlow | Swipe queue, Application Pack, tracker | User can move from match to reviewed application and follow-up status. |
+| Automation | Supported API and guided browser handoff | Each integration is permissioned, auditable, reversible, and final-submission controlled. |
+
+## References
+
+[1]: https://help.simplify.jobs/articles/2140179-using-the-job-tracker "Simplify Help: Using the Job Tracker"
+[2]: https://emploi.fnecm.org/offres "FNE Cameroon public job offers"
+[3]: https://reliefweb.int/jobs/rss.xml?advanced-search=%28C49%29 "ReliefWeb Cameroon Jobs RSS"
