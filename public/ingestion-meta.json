@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-24T09:55:43.321Z",
+  "generatedAt": "2026-08-24T13:17:04.560Z",
   "jobs": 725,
   "sources": [
     {
@@ -7,28 +7,28 @@
       "label": "FNE — Fonds National de l'Emploi",
       "status": "ok",
       "fetched": 36,
-      "durationMs": 19344
+      "durationMs": 5989
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 581,
-      "durationMs": 3312
+      "fetched": 579,
+      "durationMs": 328
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
-      "status": "ok",
-      "fetched": 6,
-      "durationMs": 2555
+      "status": "error",
+      "error": "HTTP 406",
+      "durationMs": 291
     },
     {
       "id": "weworkremotely-rss",
       "label": "We Work Remotely RSS",
       "status": "ok",
       "fetched": 90,
-      "durationMs": 2557
+      "durationMs": 802
     }
   ]
 }
