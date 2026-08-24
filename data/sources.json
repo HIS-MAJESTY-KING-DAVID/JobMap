@@ -47,6 +47,62 @@
       "notes": "Use the public RSS feed; retain original ReliefWeb job URLs and attribution."
     },
     {
+      "id": "weworkremotely-global-rss",
+      "label": "We Work Remotely RSS — Global",
+      "type": "rss",
+      "enabled": true,
+      "url": "https://weworkremotely.com/remote-jobs.rss",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public",
+      "sourceTrust": "public-feed",
+      "owner": "We Work Remotely",
+      "notes": "Retain the canonical WWR listing link and visible source attribution."
+    },
+    {
+      "id": "jobicy-api",
+      "label": "Jobicy Remote Jobs API",
+      "type": "jobicy",
+      "enabled": true,
+      "url": "https://jobicy.com/api/v2/remote-jobs?count=100",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public-api",
+      "sourceTrust": "public-api",
+      "owner": "Jobicy",
+      "notes": "Preserve Jobicy attribution and canonical links; do not poll more than once per hour."
+    },
+    {
+      "id": "remotive-api",
+      "label": "Remotive Remote Jobs API",
+      "type": "remotive",
+      "enabled": true,
+      "url": "https://remotive.com/api/remote-jobs?limit=100",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public-api-with-terms",
+      "sourceTrust": "public-api",
+      "owner": "Remotive",
+      "notes": "Keep Remotive source attribution and canonical links; public jobs are delayed 24 hours and cannot be used for third-party submission or lead capture."
+    },
+    {
+      "id": "remoteok-api",
+      "label": "Remote OK public API",
+      "type": "remoteok",
+      "enabled": true,
+      "url": "https://remoteok.com/api",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public-api-with-terms",
+      "sourceTrust": "public-api",
+      "owner": "Remote OK",
+      "notes": "Follow-link to the canonical Remote OK job URL and mention Remote OK as the source."
+    },
+    {
       "id": "lever-cameroon-template",
       "label": "Lever employer board — configure site",
       "type": "lever",
@@ -55,16 +111,6 @@
       "defaultLocation": "Cameroon",
       "scope": "Cameroon-wide",
       "status": "configuration-required"
-    },
-    {
-      "id": "weworkremotely-rss",
-      "label": "We Work Remotely RSS",
-      "type": "rss",
-      "enabled": true,
-      "url": "https://weworkremotely.com/remote-jobs.rss",
-      "defaultLocation": "Cameroon",
-      "scope": "Cameroon-wide",
-      "status": "verified"
     }
   ]
 }

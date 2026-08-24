@@ -1,6 +1,6 @@
 {
   "candidates": [
-        {
+    {
       "id": "reliefweb-api",
       "name": "ReliefWeb Jobs API",
       "coverage": "Cameroon-wide humanitarian and development roles",
@@ -27,7 +27,145 @@
       "status": "ready-public-listing",
       "nextStep": "Use the rate-limited HTML adapter, preserve FNE detail links, and keep applications on the FNE portal."
     },
-
+    {
+      "id": "jobicy-api",
+      "name": "Jobicy Remote Jobs API",
+      "coverage": "Worldwide remote roles with geo, category, type, date, and salary fields",
+      "url": "https://jobicy.com/jobs-rss-feed",
+      "machineEndpoint": "https://jobicy.com/api/v2/remote-jobs?count=100",
+      "status": "ready-public-api",
+      "terms": "Attribution and canonical Jobicy link required; fair use; do not poll more than once per hour.",
+      "nextStep": "Add a JSON adapter, map jobGeo to evidence-based remoteEligibility, and run a live fixture/schema test."
+    },
+    {
+      "id": "remotive-api",
+      "name": "Remotive Remote Jobs API",
+      "coverage": "Worldwide remote roles with public API and RSS access",
+      "url": "https://remotive.com/remote-jobs/api",
+      "machineEndpoint": "https://remotive.com/api/remote-jobs?limit=100",
+      "status": "ready-public-api-with-terms",
+      "terms": "Link to the Remotive job URL and mention Remotive; public jobs are delayed 24 hours; no third-party submission or lead-capture wall.",
+      "nextStep": "Add a JSON adapter and visible Remotive attribution; keep applications on the canonical source."
+    },
+    {
+      "id": "remoteok-api",
+      "name": "Remote OK public API",
+      "coverage": "Worldwide, regional, and country-filtered remote roles, including Cameroon",
+      "url": "https://remoteok.com/",
+      "machineEndpoint": "https://remoteok.com/api",
+      "status": "ready-public-api-with-terms",
+      "terms": "Follow links to the Remote OK URL and mention Remote OK as the source.",
+      "nextStep": "Add a JSON adapter, parse location and country scope, and retain Remote OK attribution."
+    },
+    {
+      "id": "weworkremotely-global-rss",
+      "name": "We Work Remotely global RSS",
+      "coverage": "Global remote roles with source/category/location information",
+      "url": "https://weworkremotely.com/",
+      "machineEndpoint": "https://weworkremotely.com/remote-jobs.rss",
+      "status": "ready-public-feed",
+      "terms": "Use the public RSS endpoint, retain canonical links and source attribution, and do not access account-only paths.",
+      "nextStep": "Use the existing RSS adapter but classify the default location as global remote rather than Cameroon-wide."
+    },
+    {
+      "id": "working-nomads",
+      "name": "Working Nomads",
+      "coverage": "Worldwide digital-nomad and remote roles",
+      "url": "https://www.workingnomads.com/jobs",
+      "machineEndpoint": null,
+      "status": "link-only-pending-feed",
+      "nextStep": "Find an official RSS/API or request permission; do not scrape the listing page by default."
+    },
+    {
+      "id": "remote-co",
+      "name": "Remote.co",
+      "coverage": "Remote roles across industries",
+      "url": "https://remote.co/remote-jobs/",
+      "machineEndpoint": null,
+      "status": "link-only-pending-access-review",
+      "nextStep": "Verify official feed/API or partnership terms before automation."
+    },
+    {
+      "id": "nodesk",
+      "name": "NoDesk",
+      "coverage": "Remote and work-from-anywhere listings",
+      "url": "https://nodesk.co/remote-jobs/",
+      "machineEndpoint": null,
+      "status": "link-only-pending-feed",
+      "nextStep": "Find an official feed/API or request permission; guessed RSS endpoint returned 404 during live probe."
+    },
+    {
+      "id": "trulyremote",
+      "name": "TrulyRemote",
+      "coverage": "Remote roles with an Africa filter",
+      "url": "https://trulyremote.co/?locations=Africa",
+      "machineEndpoint": null,
+      "status": "link-only-pending-feed",
+      "nextStep": "Request a supported feed/API; robots disallows /api and guessed RSS endpoint returned 404 during live probe."
+    },
+    {
+      "id": "unjobs",
+      "name": "UNJobs",
+      "coverage": "UN and international-organization vacancies",
+      "url": "https://unjobs.org/",
+      "machineEndpoint": null,
+      "status": "link-only-pending-feed",
+      "nextStep": "Verify official feed/API and terms; prefer first-party organization feeds when possible."
+    },
+    {
+      "id": "wellfound",
+      "name": "Wellfound",
+      "coverage": "Startup roles, including remote/distributed work",
+      "url": "https://wellfound.com/jobs",
+      "machineEndpoint": null,
+      "status": "partnership-or-employer-ats-only",
+      "nextStep": "Use approved employer ATS links or partnership access; public response showed bot protection."
+    },
+    {
+      "id": "builtin",
+      "name": "Built In",
+      "coverage": "Technology roles and remote filters",
+      "url": "https://builtin.com/jobs/remote",
+      "machineEndpoint": null,
+      "status": "partnership-or-employer-ats-only",
+      "nextStep": "Use approved employer ATS links or partnership access; public response showed bot protection."
+    },
+    {
+      "id": "flexa",
+      "name": "Flexa",
+      "coverage": "Flexible and remote-work roles",
+      "url": "https://flexa.careers/jobs",
+      "machineEndpoint": null,
+      "status": "partnership-or-feed-review",
+      "nextStep": "Verify a publisher feed/API before automation; public response showed bot-protection signals."
+    },
+    {
+      "id": "rare-roles",
+      "name": "RareRoles",
+      "coverage": "Curated niche roles",
+      "url": "https://www.rareroles.com/",
+      "machineEndpoint": null,
+      "status": "partnership-or-link-only",
+      "nextStep": "Request a feed or permission before automation."
+    },
+    {
+      "id": "still-hiring",
+      "name": "Still Hiring",
+      "coverage": "Curated technology roles",
+      "url": "https://stillhiring.today/",
+      "machineEndpoint": null,
+      "status": "partnership-or-link-only",
+      "nextStep": "Request a feed or permission before automation."
+    },
+    {
+      "id": "remotejobsfinder",
+      "name": "RemoteJobsFinder",
+      "coverage": "Worldwide remote-job directory",
+      "url": "https://remotejobsfinder.co/en",
+      "machineEndpoint": null,
+      "status": "link-only-pending-feed",
+      "nextStep": "Find a documented feed/API or permission; public response showed bot-protection signals."
+    },
     {
       "id": "orange-cameroon-taleo",
       "name": "Orange Cameroon careers",
@@ -41,22 +179,22 @@
     {
       "id": "greenhouse-employers",
       "name": "Greenhouse employer boards",
-      "coverage": "Employer-specific; can be Cameroon-wide when location fields are present",
+      "coverage": "Employer-specific; can be worldwide when location fields are present",
       "url": "https://developers.greenhouse.io/job-board.html",
       "machineEndpoint": "https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs",
       "status": "ready-with-board-token",
-      "nextStep": "Add approved employer board tokens and default location rules."
+      "nextStep": "Add approved employer board tokens and derive global remote eligibility from location fields."
     },
     {
       "id": "lever-employers",
       "name": "Lever employer boards",
-      "coverage": "Employer-specific; can be Cameroon-wide when location fields are present",
+      "coverage": "Employer-specific; can be worldwide when location fields are present",
       "url": "https://hire.lever.co/developer/documentation",
       "machineEndpoint": "https://api.lever.co/v0/postings/{site}?mode=json",
       "status": "ready-with-site-name",
-      "nextStep": "Add approved employer site names and verify location coverage."
+      "nextStep": "Add approved employer site names and derive global remote eligibility from location fields."
     },
-        {
+    {
       "id": "jeme-minefop",
       "name": "JEME / MINEFOP opportunities",
       "coverage": "Cameroon-wide jobs, internships, training, and government opportunities",
@@ -77,7 +215,6 @@
     {
       "id": "local-rss-feeds",
       "name": "Local employer, university, NGO, and job-board RSS/Atom feeds",
-
       "coverage": "Cameroon-wide depending on publisher",
       "url": null,
       "machineEndpoint": "Configured feed URL",

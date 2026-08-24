@@ -95,18 +95,56 @@ function parseFrenchDate(value) {
   return new Date(Date.UTC(Number(match[3]), month, Number(match[1]), 12)).toISOString();
 }
 
-function parseLocation(value, fallback = '') {
+function parseLocation(value, fallback = '', rawCountry = '') {
   const location = String(value || fallback).trim();
   const match = Object.entries(locationFallbacks).find(([key]) => location.toLowerCase().includes(key));
   return {
     location: location || 'Location not specified',
-    ...(match ? match[1] : locationFallbacks.douala),
+    ...(match ? match[1] : {}),
+    country: match?.[1]?.country || rawCountry || (/cameroon/i.test(location) ? 'Cameroon' : ''),
   };
 }
 
 function toIso(value, fallback = now) {
   const date = value ? new Date(value) : fallback;
   return Number.isNaN(date.getTime()) ? fallback.toISOString() : date.toISOString();
+}
+
+function splitValues(value) {
+  if (Array.isArray(value)) return value.flatMap((item) => splitValues(item));
+  return String(value || '')
+    .split(/[,;|]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function formatSalary(raw) {
+  if (raw.salary) return String(raw.salary);
+  if (raw.salaryMin == null && raw.salaryMax == null) return null;
+  const currency = raw.salaryCurrency || 'USD';
+  const period = raw.salaryPeriod ? `/${raw.salaryPeriod}` : '';
+  const min = raw.salaryMin != null ? raw.salaryMin : '';
+  const max = raw.salaryMax != null ? raw.salaryMax : '';
+  return `${currency} ${min}${max ? `–${max}` : '+'}${period}`;
+}
+
+function inferRemoteEligibility(raw, source) {
+  const explicit = String(raw.remoteEligibility || '').toLowerCase();
+  if (['cameroon-eligible', 'africa-eligible', 'worldwide', 'restricted', 'unclear'].includes(explicit)) return explicit;
+  const text = [
+    raw.location,
+    raw.jobGeo,
+    raw.candidateRequiredLocation,
+    raw.eligibleCountries,
+    raw.excludedCountries,
+    raw.description,
+    raw.title,
+  ].flatMap((value) => splitValues(value)).join(' ').toLowerCase();
+  if (/not eligible|excluded|only in the (us|usa|uk|europe)|us only|europe only/.test(text)) return 'restricted';
+  if (/cameroon/.test(text)) return 'cameroon-eligible';
+  if (/africa|sub-saharan/.test(text)) return 'africa-eligible';
+  if (/worldwide|work from anywhere|anywhere in the world|global remote|distributed team/.test(text)) return 'worldwide';
+  return source.remote || raw.workMode === 'Remote' ? 'unclear' : null;
 }
 
 function inferTags(title, description, extra = []) {
@@ -127,10 +165,13 @@ function inferTags(title, description, extra = []) {
 function normalizeJob(raw, source) {
   const title = raw.title || raw.text || raw.name || 'Untitled role';
   const company = raw.company || source.company || source.label || 'Unknown employer';
-  const locationData = parseLocation(raw.location, source.defaultLocation);
+    const locationData = parseLocation(raw.location, source.defaultLocation, raw.country);
+  const remoteEligibility = inferRemoteEligibility(raw, source);
+
   const description = cleanText(raw.description || raw.content || 'No description supplied by the source.');
   const externalId = raw.externalId || raw.id || raw.url || `${title}-${company}-${locationData.location}`;
-  const postedAt = toIso(raw.postedAt || raw.createdAt || raw.updatedAt, now);
+    const postedAt = toIso(raw.postedAt || raw.createdAt || raw.updatedAt || raw.publicationDate || raw.pubDate || raw.date, now);
+
   const expiresAt = raw.expiresAt ? toIso(raw.expiresAt) : new Date(new Date(postedAt).getTime() + DEFAULT_TTL_DAYS * DAY).toISOString();
 
   return {
@@ -141,7 +182,8 @@ function normalizeJob(raw, source) {
     location: locationData.location,
     city: locationData.city,
     region: locationData.region || raw.region || '',
-    country: locationData.country,
+        country: locationData.country || raw.country || (source.remote ? 'Worldwide' : 'Cameroon'),
+
     lat: Number(raw.lat ?? locationData.lat),
     lng: Number(raw.lng ?? locationData.lng),
     description: description.slice(0, 320),
@@ -151,11 +193,22 @@ function normalizeJob(raw, source) {
     sourceUrl: source.url || raw.url || '#',
     postedAt,
     lastVerifiedAt: now.toISOString(),
-    expiresAt,
+        expiresAt,
     employmentType: raw.employmentType || raw.type || 'Full-time',
-    workMode: raw.workMode || 'Not listed',
-    locationConfidence: raw.locationConfidence || (raw.location ? 'source' : 'estimated'),
+    salary: formatSalary(raw),
+    salaryMin: raw.salaryMin ?? null,
+    salaryMax: raw.salaryMax ?? null,
+    salaryCurrency: raw.salaryCurrency || null,
+    salaryPeriod: raw.salaryPeriod || null,
+    workMode: raw.workMode || (source.remote ? 'Remote' : 'Not listed'),
+    remoteEligibility,
+    eligibleCountries: splitValues(raw.eligibleCountries),
+    excludedCountries: splitValues(raw.excludedCountries),
+    timezoneOverlap: raw.timezoneOverlap || '',
+    sourceTrust: raw.sourceTrust || source.sourceTrust || 'unverified',
+    locationConfidence: raw.locationConfidence || (raw.location ? 'source' : source.remote ? 'source' : 'estimated'),
     tags: inferTags(title, description, raw.tags || []),
+
   };
 }
 
@@ -177,7 +230,71 @@ async function fetchText(url) {
   }
 }
 
+async function fetchJson(url) {
+  return JSON.parse(await fetchText(url));
+}
+
+async function fetchJobicy(source) {
+  const payload = await fetchJson(source.url);
+  return (payload.jobs || []).map((job) => ({
+    externalId: job.id,
+    title: job.jobTitle,
+    company: job.companyName,
+    location: job.jobGeo || 'Worldwide remote',
+    description: job.jobDescription || job.jobExcerpt,
+    url: job.url,
+    applyUrl: job.url,
+    postedAt: job.pubDate,
+    employmentType: Array.isArray(job.jobType) ? job.jobType.join(', ') : job.jobType,
+    salaryMin: job.salaryMin,
+    salaryMax: job.salaryMax,
+    salaryCurrency: job.salaryCurrency,
+    salaryPeriod: job.salaryPeriod,
+    jobGeo: job.jobGeo,
+    tags: [...(job.jobIndustry || []), job.jobLevel].filter(Boolean),
+  }));
+}
+
+async function fetchRemotive(source) {
+  const payload = await fetchJson(source.url);
+  return (payload.jobs || []).map((job) => ({
+    externalId: job.id,
+    title: job.title,
+    company: job.company_name,
+    location: job.candidate_required_location || 'Worldwide remote',
+    candidateRequiredLocation: job.candidate_required_location,
+    description: job.description,
+    url: job.url,
+    applyUrl: job.url,
+    postedAt: job.publication_date,
+    employmentType: job.job_type,
+    salary: job.salary,
+    tags: [job.category, ...(job.tags || [])].filter(Boolean),
+  }));
+}
+
+async function fetchRemoteOk(source) {
+  const payload = await fetchJson(source.url);
+  return (Array.isArray(payload) ? payload : []).filter((job) => job.id || job.slug).map((job) => ({
+    externalId: job.id || job.slug,
+    title: job.position || job.title,
+    company: job.company,
+    location: job.location || (job.tags || []).join(', ') || 'Worldwide remote',
+    description: job.description,
+    url: job.url || `https://remoteok.com/remote-jobs/${job.slug}`,
+    applyUrl: job.apply_url || job.url || `https://remoteok.com/remote-jobs/${job.slug}`,
+    postedAt: job.date || (job.epoch ? new Date(Number(job.epoch) * 1000).toISOString() : undefined),
+    salary: job.salary_min || job.salary_max ? `${job.salary_min || ''}${job.salary_max ? `–${job.salary_max}` : '+'} ${job.salary_currency || 'USD'}` : null,
+    salaryMin: job.salary_min,
+    salaryMax: job.salary_max,
+    salaryCurrency: job.salary_currency,
+    jobGeo: job.location,
+    tags: job.tags || [],
+  }));
+}
+
 async function fetchGreenhouse(source) {
+
   const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(source.boardToken)}/jobs?content=true`;
   const payload = JSON.parse(await fetchText(url));
   return (payload.jobs || []).map((job) => ({
@@ -242,15 +359,20 @@ function fetchRss(source) {
   return fetchText(source.url).then((xml) => {
     const entries = xml.match(/<(item|entry)(?:\s[^>]*)?>[\s\S]*?<\/(item|entry)>/gi) || [];
     return entries.map((entry) => {
+            const title = firstText(entry, 'title');
+      const creator = firstText(entry, 'dc:creator') || firstText(entry, 'creator');
+      const titleCompany = title.match(/^([^:]{2,90}):\s+/)?.[1] || '';
       const urlMatch = entry.match(/<(?:link|guid)(?:\s[^>]*)?>([\s\S]*?)<\//i);
       return {
-        externalId: firstText(entry, 'guid') || firstText(entry, 'id'),
-        title: firstText(entry, 'title'),
+        externalId: firstText(entry, 'guid') || firstText(entry, 'id') || urlMatch?.[1],
+        title: titleCompany ? title.slice(titleCompany.length + 1).trim() : title,
+        company: creator || titleCompany || source.company,
         location: firstText(entry, 'location') || source.defaultLocation,
         description: firstText(entry, 'description') || firstText(entry, 'summary') || firstText(entry, 'content'),
         url: urlMatch ? cleanText(urlMatch[1]) : '#',
         postedAt: firstText(entry, 'pubDate') || firstText(entry, 'published') || firstText(entry, 'updated'),
       };
+
     });
   });
 }
@@ -350,10 +472,16 @@ async function main() {
         : source.type === 'lever'
           ? await fetchLever(source)
           : source.type === 'reliefweb'
-            ? await fetchReliefWeb(source)
-            : source.type === 'fne'
-              ? await fetchFne(source)
-              : await fetchRss(source);
+              ? await fetchReliefWeb(source)
+              : source.type === 'fne'
+                ? await fetchFne(source)
+                : source.type === 'jobicy'
+                  ? await fetchJobicy(source)
+                  : source.type === 'remotive'
+                    ? await fetchRemotive(source)
+                    : source.type === 'remoteok'
+                      ? await fetchRemoteOk(source)
+                      : await fetchRss(source);
 
       const normalized = rawJobs.map((job) => normalizeJob(job, source));
       normalized.forEach((job) => allJobs.set(dedupeKey(job), job));

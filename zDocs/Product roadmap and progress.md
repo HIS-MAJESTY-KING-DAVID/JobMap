@@ -76,10 +76,10 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Feature area | Progress | Current state | Definition of done |
 |---|---:|---|---|
 | Cameroon map, search, radius, and filters | 90% | Working vertical slice with city and radius behavior | Production UX polish, accessibility pass, and source-quality edge cases completed |
-| Source registry and ingestion pipeline | 75% | Greenhouse, RSS, ReliefWeb RSS, and FNE adapters are present; refresh metadata is published | Reliable scheduled runtime, retries, source-health monitoring, and documented permissions |
+| Source registry and ingestion pipeline | 82% | Greenhouse, RSS, ReliefWeb RSS, FNE, Jobicy, Remotive, and Remote OK adapters are present; refreshed metadata is published | Reliable scheduled runtime, retries, source-health monitoring, and documented permissions |
 | Credible Cameroon-wide sources | 65% | FNE and ReliefWeb RSS are activated in the current feed; institutional and employer expansion remains | Regional coverage audit, freshness checks, and publisher relationships |
-| Global remote source network | 15% | Product direction defined; existing remote feed coverage is limited | Multiple approved global remote feeds with country and timezone eligibility fields |
-| Global remote eligibility engine | 5% | Remote-only mode and broad remote heuristics are now wired; detailed eligibility is not implemented | Country, timezone, contract, language, sponsorship, salary, and work-authorization logic |
+| Global remote source network | 40% | Jobicy, Remotive, Remote OK, and WWR adapters are implemented and returned live postings; source expansion remains | Multiple approved global remote feeds with country and timezone eligibility fields |
+| Global remote eligibility engine | 15% | Feed records now carry evidence-based worldwide/Africa/Cameroon/restricted/unclear labels and detail-panel badges | Country, timezone, contract, language, sponsorship, salary, and work-authorization logic |
 | Mobile-first responsive UI | 45% | Local/Remote mode controls, mobile spacing, touch-sized cards, and bottom navigation shell are implemented | Mobile navigation, thumb actions, responsive cards, keyboard/accessibility, and performance pass |
 | PWA installation and offline shell | 35% | Manifest, icon, service worker, app-shell caching, and network-first feed caching are implemented | Manifest, icons, service worker, caching strategy, offline saved state, and install QA |
 | Email sign-in | 0% | Decision confirmed; backend not yet migrated | Verified email auth, recovery, session security, consent, and account settings |
@@ -96,7 +96,7 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Email and push notifications | 5% | Local notification preference exists | Consent, unsubscribe, matching jobs, delivery logs, and notification controls |
 | Global analytics and quality dashboard | 0% | Not implemented | Source health, freshness, application funnel, and privacy-safe product metrics |
 
-**Estimated overall product progress: 30%.** This is weighted toward the existing Cameroon discovery foundation plus the completed Local/Remote and PWA foundation; the global remote ApplyFlow, authentication, profile persistence, and controlled automation layers are still largely ahead.
+**Estimated overall product progress: 35%.** This is weighted toward the existing Cameroon discovery foundation plus the completed Local/Remote/PWA foundation and first live global feeds; authentication, profile persistence, eligibility depth, and controlled automation layers are still largely ahead.
 
 ## Roadmap
 

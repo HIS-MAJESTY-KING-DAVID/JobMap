@@ -65,7 +65,7 @@ A source failure must not erase valid prior jobs immediately. A posting should r
 
 ## Progress tracker
 
-Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **30% overall**, weighted toward the working Cameroon discovery foundation plus the newly implemented Local/Remote mode and PWA foundation. Account persistence, Simplify import, swipe interactions, Application Pack generation, and controlled automation are mostly planned rather than implemented.
+Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **35% overall**, weighted toward the working Cameroon discovery foundation, the Local/Remote and PWA foundation, and the first live global feed adapters. Account persistence, Simplify import, swipe interactions, deeper eligibility, Application Pack generation, and controlled automation are mostly planned rather than implemented.
 
 ## Delivery sequence
 

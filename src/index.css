@@ -217,3 +217,7 @@ button { color: inherit; }
   .remote-context__chips { max-width: 275px; margin-top: 14px; }
   .remote-context__chips span { padding: 6px 7px; font-size: 7px; }
 }
+
+.eligibility-chip { border-color: #d7e1b0 !important; background: #f5f8df; color: #687324; }
+.eligibility-chip--worldwide, .eligibility-chip--cameroon-eligible { border-color: rgba(112, 199, 168, 0.45) !important; background: #e6f3ed; color: #1f6e68; }
+.eligibility-chip--restricted { border-color: #f2c9c9 !important; background: #fff0f0; color: #a04b4b; }
