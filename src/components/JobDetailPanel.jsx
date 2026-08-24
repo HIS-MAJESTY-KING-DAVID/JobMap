@@ -22,7 +22,8 @@ const trustLabels = {
   unverified: 'Source needs review',
 };
 
-export default function JobDetailPanel({ job, onClose, onSave, isSaved }) {
+export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved }) {
+
   if (!job) return null;
 
   return (
@@ -51,13 +52,18 @@ export default function JobDetailPanel({ job, onClose, onSave, isSaved }) {
         {job.timezoneOverlap && <span><b>Timezone</b>{job.timezoneOverlap}</span>}
       </div>
 
-      <div className="job-detail__actions">
-        <a className="primary-action" href={job.applyUrl} target="_blank" rel="noopener noreferrer">Open application ↗</a>
+            <div className="job-detail__actions">
+        <button className="primary-action" type="button" onClick={() => onApply(job)}>Start ApplyFlow</button>
         <button className={`secondary-action ${isSaved ? 'secondary-action--saved' : ''}`} type="button" onClick={() => onSave(job)}>
+
           {isSaved ? 'Saved' : 'Save opening'}
         </button>
       </div>
+            <div className="job-detail__actions job-detail__actions--secondary">
+        <a className="secondary-action" href={job.applyUrl} target="_blank" rel="noopener noreferrer">Open application ↗</a>
+      </div>
       <a className="job-detail__source-link" href={job.sourceUrl} target="_blank" rel="noopener noreferrer">View original source</a>
+
     </section>
   );
 }

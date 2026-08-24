@@ -65,7 +65,7 @@ A source failure must not erase valid prior jobs immediately. A posting should r
 
 ## Progress tracker
 
-Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **35% overall**, weighted toward the working Cameroon discovery foundation, the Local/Remote and PWA foundation, and the first live global feed adapters. Account persistence, Simplify import, swipe interactions, deeper eligibility, Application Pack generation, and controlled automation are mostly planned rather than implemented.
+Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **38% overall**, weighted toward the working Cameroon discovery foundation, the Local/Remote and PWA foundation, the first live global feed adapters, and the initial guided ApplyFlow panel. Account persistence, Simplify import, swipe interactions, deeper eligibility, Application Pack generation, and controlled automation are mostly planned rather than implemented.
 
 ## Delivery sequence
 
@@ -76,7 +76,7 @@ Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20a
 | Accounts | Email/Google account and profile | Preferences, documents, and profile versions persist securely across devices. |
 | Imports | Simplify tracker CSV and resume/profile import | User sees mappings and confirms before data is saved. |
 | Remote | Global remote feed and eligibility | Cameroon-based users see only clearly labelled eligible or uncertain roles. |
-| ApplyFlow | Swipe queue, Application Pack, tracker | User can move from match to reviewed application and follow-up status. |
+| ApplyFlow | Swipe queue, Application Pack, tracker | User can move from match to reviewed application and follow-up status. The current milestone is a 12% guided review surface with canonical handoff and no silent submission. |
 | Automation | Supported API and guided browser handoff | Each integration is permissioned, auditable, reversible, and final-submission controlled. |
 
 ## References

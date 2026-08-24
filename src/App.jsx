@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import ApplyFlowPanel from './components/ApplyFlowPanel';
 import JobDetailPanel from './components/JobDetailPanel';
+
 import MapContainer from './components/MapContainer';
 import Sidebar from './components/Sidebar';
 import { cameroonLocations, defaultLocationId, getLocationById } from './data/locations';
@@ -25,6 +27,7 @@ function App() {
   const [appMode, setAppMode] = useState('local');
   const [activeTab, setActiveTab] = useState('discover');
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const [applyJob, setApplyJob] = useState(null);
 
   const [savedJobs, setSavedJobs] = useState(() => getSavedJobs());
   const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
@@ -189,9 +192,12 @@ function App() {
           </>
         )}
 
-        <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
-      </section>
+                <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
+
+            </section>
+      <ApplyFlowPanel job={applyJob} onClose={() => setApplyJob(null)} />
     </main>
+
   );
 }
 

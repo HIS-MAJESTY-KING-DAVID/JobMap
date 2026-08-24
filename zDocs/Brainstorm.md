@@ -53,3 +53,21 @@ The next design discussion should settle which remote sources are allowed in the
 ## Reference
 
 [1]: https://help.simplify.jobs/articles/2140179-using-the-job-tracker "Simplify Help: Using the Job Tracker"
+
+## Current implementation snapshot
+
+The current estimated product progress is **38% overall**. The first guided ApplyFlow surface is now implemented: a user can select a job, review a two-step preparation sheet, inspect a local draft preview, and open the canonical application source. The flow is deliberately user-controlled and does not submit applications automatically.
+
+| Feature area | Progress |
+|---|---:|
+| Mobile-first responsive UI | 55% |
+| PWA installation and offline shell | 35% |
+| Global remote source network | 40% |
+| Global remote eligibility engine | 15% |
+| Swipe discovery queue | 12% |
+| Application Pack generation | 8% |
+| Hybrid assisted application | 5% |
+| Simplify profile/resume import | 5% |
+| Email and Google sign-in | 0% |
+
+The remaining ApplyFlow work is profile-backed tailoring, Simplify import, eligibility-aware ranking, swipe gestures, application history, form assistance through approved paths, and final user confirmation with audit records.

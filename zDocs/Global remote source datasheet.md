@@ -78,3 +78,9 @@ The implementation order is to add Jobicy JSON, Remotive JSON, and Remote OK JSO
 [7]: https://www.workingnomads.com/jobs "Working Nomads remote jobs"
 [8]: https://trulyremote.co/?locations=Africa "TrulyRemote Africa remote jobs"
 [9]: https://unjobs.org/ "UNJobs international vacancies"
+
+## Current implementation progress
+
+The global remote source network is **40% complete**. Jobicy, Remotive, Remote OK, and We Work Remotely are active through public JSON/RSS adapters and have returned live postings. The global eligibility engine is **15% complete**: JobMap stores and displays evidence-based worldwide, Africa-eligible, Cameroon-eligible, restricted, and unclear labels, but country restrictions, timezone overlap, work authorization, sponsorship, and language matching are not yet fully normalized.
+
+ApplyFlow is **12% complete**. The source inventory is ready for future application workflows, and the first user-controlled review panel can open from a selected job. Profile-backed tailoring, Simplify imports, source-specific application capabilities, and application-history persistence remain to be built.
