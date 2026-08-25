@@ -92,3 +92,24 @@ The reported console errors are not emitted by JobMap. The visible `grammarly.js
 | Direct ATS/API execution | 10% |
 | Browser-extension execution | 12% |
 | Overall product | 56% |
+
+
+## Application lifecycle milestone — 25 August 2026
+
+JobMap now supports the next application-process step after pack preparation. A saved pack can be marked **Applied** from Tracker after the user completes a manual employer submission. The user can then set a status, follow-up date, next action, and notes. The local-first tracker also attempts to synchronize authenticated application records to Supabase, including the autofill bundle, selected CV reference, execution state, application route, follow-up metadata, and non-secret submission receipt metadata.
+
+The new follow-up schema migration is `supabase/migrations/202608250004_application_followups.sql`. RLS remains inherited from the existing `applications` ownership policies. Cloud synchronization failures do not discard the local tracker record; JobMap reports the fallback state instead.
+
+ApplyFlow is complete for **in-site preparation, source-backed autofill, review, explicit confirmation, duplicate prevention, manual submission confirmation, follow-up tracking, and auditable lifecycle data**. It is not yet complete for universal employer submission because portals differ and many require login, CAPTCHA, MFA, legal attestations, or employer-specific APIs. Those execution boundaries remain explicit rather than being simulated.
+
+| Workstream | Updated progress |
+|---|---:|
+| In-site Application Pack | 100% |
+| Source-backed autofill and review | 100% |
+| Confirmed answer learning | 75% |
+| Local applied/follow-up tracker | 85% |
+| Supabase application synchronization | 55% |
+| Direct ATS/API execution | 15% |
+| Browser-extension execution | 15% |
+| Universal ApplyFlow | 68% |
+| Overall product | 58% |

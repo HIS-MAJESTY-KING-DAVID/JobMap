@@ -6,7 +6,7 @@ import MapContainer from './components/MapContainer';
 import Sidebar from './components/Sidebar';
 import { cameroonLocations, defaultLocationId, getLocationById } from './data/locations';
 import { fetchJobs, filterJobs, getNewestDate } from './services/JobService';
-import { listCvDocuments, loadRemoteProfile, subscribeToAuth, supabase } from './services/supabase';
+import { listCvDocuments, loadRemoteProfile, saveRemoteApplication, subscribeToAuth, supabase } from './services/supabase';
 import {
     getAlertedJobIds,
   getAlertsEnabled,
@@ -167,8 +167,12 @@ function App() {
   }, []);
 
   const saveCurrentApplication = useCallback((application) => {
-    setApplications(saveApplication(application));
-  }, []);
+    const nextApplications = saveApplication(application);
+    setApplications(nextApplications);
+    if (session?.user?.id) {
+      saveRemoteApplication(application, session.user.id).catch(() => setError('Application saved locally, but cloud sync is temporarily unavailable.'));
+    }
+  }, [session]);
 
   const toggleAlerts = useCallback(async () => {
     if (alertEnabled) {
@@ -222,7 +226,12 @@ function App() {
         cvDocuments={cvDocuments}
         onCvDocumentsChange={(documents) => setCvDocuments(documents)}
         onUpdateApplication={(applicationId, patch) => {
+          const current = applications.find((application) => application.id === applicationId);
+          const nextApplication = current ? { ...current, ...patch, updatedAt: new Date().toISOString() } : null;
           setApplications(updateApplication(applicationId, patch));
+          if (session?.user?.id && nextApplication) {
+            saveRemoteApplication(nextApplication, session.user.id).catch(() => setError('Tracker updated locally, but cloud sync is temporarily unavailable.'));
+          }
         }}
       />
       <section className={`map-panel ${appMode === 'remote' ? 'map-panel--remote' : ''}`}>

@@ -80,6 +80,45 @@ export async function uploadCv(file, userId) {
   return record;
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function applicationToRow(application, userId) {
+  const job = application.job || {};
+  const pack = application.pack || {};
+  const bundle = application.autofillBundle || pack.autofillBundle || null;
+  const jobFingerprint = application.jobFingerprint || `${job.source || 'jobmap'}:${application.jobId || job.id || application.id}`;
+  return {
+    user_id: userId,
+    job_id: UUID_PATTERN.test(application.jobId || '') ? application.jobId : null,
+    job_fingerprint: jobFingerprint,
+    cv_document_id: UUID_PATTERN.test(pack.cvDocumentId || '') ? pack.cvDocumentId : null,
+    status: application.status || 'draft',
+    application_mode: application.executionRoute || 'manual_fallback',
+    cover_note: pack.coverNote || null,
+    screening_answers: pack.screeningAnswers ? { text: pack.screeningAnswers } : null,
+    autofill_bundle: bundle,
+    autofill_state: bundle?.blockedFieldIds?.length ? 'blocked' : bundle?.requiresReviewFieldIds?.length ? 'needs_review' : 'ready_for_handoff',
+    eligibility: job.remoteEligibility ? { remoteEligibility: job.remoteEligibility, eligibleCountries: job.eligibleCountries || [] } : null,
+    source_url: job.applyUrl || job.sourceUrl || null,
+    submitted_at: application.submittedAt || null,
+    applied_at: application.appliedAt || null,
+    follow_up_at: application.followUpAt || null,
+    follow_up_note: application.followUpNote || null,
+    recruiter_contact: application.recruiterContact || null,
+    next_action: application.nextAction || null,
+    submission_receipt: application.submissionReceipt || null,
+    execution_state: application.executionState || 'not_started',
+    updated_at: application.updatedAt || new Date().toISOString(),
+  };
+}
+
+export async function saveRemoteApplication(application, userId) {
+  if (!supabase || !userId || !application) return null;
+  const { data, error } = await supabase.from('applications').upsert(applicationToRow(application, userId), { onConflict: 'user_id,job_fingerprint' }).select().single();
+  if (error) throw error;
+  return data;
+}
+
 export function subscribeToAuth(callback) {
   if (!supabase) return () => {};
   const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));

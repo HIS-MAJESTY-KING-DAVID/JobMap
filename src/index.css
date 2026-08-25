@@ -487,3 +487,46 @@ button { color: inherit; }
   color: var(--sea);
   font-weight: 700;
 }
+
+
+.application-item__followup {
+  color: var(--sea);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.application-item__followup-editor {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(20, 45, 43, 0.12);
+}
+
+.application-item__followup-editor label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.application-item__followup-editor span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.application-item__followup-editor input,
+.application-item__followup-editor textarea,
+.application-item__actions select {
+  min-width: 0;
+  border: 1px solid rgba(20, 45, 43, 0.2);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.application-item__actions select {
+  min-height: 38px;
+}

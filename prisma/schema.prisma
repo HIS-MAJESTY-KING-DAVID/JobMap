@@ -179,6 +179,13 @@ model Application {
   eligibility      Json?
   sourceUrl        String?   @map("source_url") @db.VarChar(1500)
   submittedAt      DateTime? @map("submitted_at") @db.Timestamptz(6)
+  appliedAt        DateTime? @map("applied_at") @db.Timestamptz(6)
+  followUpAt       DateTime? @map("follow_up_at") @db.Timestamptz(6)
+  followUpNote     String?   @map("follow_up_note")
+  recruiterContact String?   @map("recruiter_contact")
+  nextAction       String?   @map("next_action")
+  submissionReceipt Json?    @map("submission_receipt")
+  executionState   String    @default("not_started") @map("execution_state") @db.VarChar(40)
   withdrawnAt      DateTime? @map("withdrawn_at") @db.Timestamptz(6)
   deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
