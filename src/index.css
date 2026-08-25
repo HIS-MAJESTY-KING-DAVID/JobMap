@@ -458,3 +458,32 @@ button { color: inherit; }
   .apply-flow__autofill-row { grid-template-columns: 1fr; gap: 0.25rem; }
   .apply-flow__autofill-row em { text-align: left; }
 }
+
+
+.apply-flow__express-action {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid #b8d4c0;
+  border-radius: 10px;
+  background: #edf7ef;
+}
+
+.apply-flow__express-action .primary-action {
+  min-height: 42px;
+  font-weight: 800;
+}
+
+.apply-flow__express-action span,
+.apply-flow__autofill-message {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.apply-flow__autofill-message {
+  margin: 0.7rem 0 0;
+  color: var(--sea);
+  font-weight: 700;
+}

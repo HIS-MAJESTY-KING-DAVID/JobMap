@@ -51,3 +51,14 @@ The deterministic field classifier, source-backed suggestion builder, review-sta
 | Overall product | 54% |
 
 These estimates measure user-flow delivery, data contracts, safety controls, and validation—not the volume of fields that can be automatically submitted.
+
+
+## Express AutoFill control — 25 August 2026
+
+The ApplyFlow review screen now includes an explicit **AutoFill forms** button. The action manually rebuilds the current source-backed bundle and reports how many safe fields are prepared, how many require review, and how many are blocked. It does not open an employer site, submit an application, or bypass any policy gate. The button is intentionally mobile-friendly and keeps sensitive, legal, CAPTCHA, login, MFA, payment, identity-verification, and unknown fields in their existing user-controlled states.
+
+| Feature area | Updated progress |
+|---|---:|
+| Express AutoFill control | 45% |
+| Autofill classification and review | 40% |
+| Overall product | 55% |

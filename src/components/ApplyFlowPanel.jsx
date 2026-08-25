@@ -47,6 +47,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const [learnedAnswers, setLearnedAnswers] = useState(getLearnedApplicationAnswers);
   const [rememberAnswers, setRememberAnswers] = useState({});
   const [reuseUnassisted, setReuseUnassisted] = useState({});
+  const [autofillMessage, setAutofillMessage] = useState('');
   const [pack, setPack] = useState(() => {
     const initialProfile = { ...readProfile(), ...(providedProfile || {}) };
     const knownAnswers = getLearnedApplicationAnswers();
@@ -93,6 +94,14 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     ...current,
     learnedAnswers: { ...current.learnedAnswers, [key]: event.target.value },
   }));
+  const runAutoFill = () => {
+    const bundle = createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: pack.cvDocumentId });
+    setPack((current) => ({ ...current, autofillBundle: bundle }));
+    const safeCount = bundle.fields.length;
+    const reviewCount = bundle.requiresReviewFieldIds.length;
+    const blockedCount = bundle.blockedFieldIds.length;
+    setAutofillMessage(`Prepared ${safeCount} safe field${safeCount === 1 ? '' : 's'}; ${reviewCount} require review${blockedCount ? `; ${blockedCount} blocked` : ''}.`);
+  };
   const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
   const savePack = (status) => {
     let answerMemory = learnedAnswers;
@@ -105,7 +114,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     });
     setLearnedAnswers(answerMemory);
     const finalSuggestions = buildAutofillSuggestions({ fields: autofillSuggestions.map(({ fieldId, label, type }) => ({ id: fieldId, label, type })), profile, job, learnedAnswers: answerMemory, unassistedMode: true });
-    const autofillBundle = createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: pack.cvDocumentId });
+    const autofillBundle = pack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: pack.cvDocumentId });
     onSaveApplication?.({
       id: `application-${job.id}`,
       jobId: job.id,
@@ -158,6 +167,8 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
         {step === 'review' && (
           <>
             <p className="apply-flow__intro">Your saved account facts are already included below. Edit the draft as needed; empty screening answers remain your responsibility. JobMap never invents qualifications or submits sensitive answers without your confirmation.</p>
+            <div className="apply-flow__express-action"><button className="primary-action" type="button" onClick={runAutoFill}>AutoFill forms</button><span>Fill only source-backed safe fields now; review-gated and blocked fields stay visible below.</span></div>
+            {autofillMessage && <p className="apply-flow__autofill-message" role="status">{autofillMessage}</p>}
             <div className="apply-flow__editor">
               <label><span>Your name</span><input value={pack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
               <label><span>Target role</span><input value={pack.targetRole} onChange={updatePack('targetRole')} /></label>
