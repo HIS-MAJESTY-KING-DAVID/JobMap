@@ -48,12 +48,26 @@ create table if not exists public.job_sources (
   name varchar(160) not null,
   source_type varchar(40) not null,
   application_mode varchar(40) not null default 'manual_fallback',
+  coverage varchar(40) not null default 'global',
+  status varchar(60) not null default 'candidate',
+  owner varchar(255),
   base_url varchar(500),
+  machine_endpoint varchar(1000),
+  terms_state varchar(120),
+  notes text,
   enabled boolean not null default false,
   verified_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.job_sources
+  add column if not exists coverage varchar(40) not null default 'global',
+  add column if not exists status varchar(60) not null default 'candidate',
+  add column if not exists owner varchar(255),
+  add column if not exists machine_endpoint varchar(1000),
+  add column if not exists terms_state varchar(120),
+  add column if not exists notes text;
 
 create table if not exists public.jobs (
   id uuid primary key default gen_random_uuid(),

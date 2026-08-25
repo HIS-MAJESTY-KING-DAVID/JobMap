@@ -86,7 +86,13 @@ model JobSource {
   name            String   @db.VarChar(160)
   sourceType      String   @map("source_type") @db.VarChar(40)
   applicationMode String   @map("application_mode") @db.VarChar(40)
+  coverage        String   @default("global") @db.VarChar(40)
+  status          String   @default("candidate") @db.VarChar(60)
+  owner           String?  @db.VarChar(255)
   baseUrl         String?  @map("base_url") @db.VarChar(500)
+  machineEndpoint String?  @map("machine_endpoint") @db.VarChar(1000)
+  termsState      String?  @map("terms_state") @db.VarChar(120)
+  notes           String?
   enabled         Boolean  @default(false)
   verifiedAt      DateTime? @map("verified_at") @db.Timestamptz(6)
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
