@@ -99,16 +99,16 @@ The pipeline preserves postings during temporary source failures and expires the
 
 ## Current progress snapshot
 
-The current estimated product progress is **51% overall**. The web and mobile sidebar now scroll as one touch-friendly surface with the five section buttons kept visible. ApplyFlow now includes an editable in-site Application Pack, a local application queue, a user-confirmed Simplify profile bridge, Supabase Email/Google auth wiring, a private CV bucket, and a profile sync foundation.
+The current estimated product progress is **52% overall**. The web and mobile sidebar now scroll as one touch-friendly surface with the five section buttons kept visible. ApplyFlow now includes an editable in-site Application Pack, a local application queue, a user-confirmed Simplify profile bridge, Supabase Email/Google auth wiring, a private CV bucket, a profile sync foundation, and explicit answer-memory confirmation.
 
 | Area | Progress | Current capability |
 |---|---:|---|
 | Mobile-first responsive UI | 65% | Responsive shell, bottom navigation, touch targets, visible section navigation, and unified desktop/mobile sidebar scrolling. |
 | PWA installation and offline shell | 35% | Manifest, icon, service worker, app-shell caching, and feed caching. |
-| Global remote source network | 40% | Jobicy, Remotive, Remote OK, and WWR adapters with live feed refresh. |
+| Global remote source network | 43% | Jobicy, Remotive, Remote OK, and WWR adapters with live feed refresh; ATS endpoint candidates are documented for approved expansion. |
 | Global remote eligibility | 15% | Evidence-based eligibility labels and detail-panel badges. |
-| ApplyFlow | 31% | Selected-job launch, in-site editable Application Pack, local queue with recovery states, profile-aware draft preview, user-confirmed profile import, Supabase auth/private CV foundations, transparent manual fallback, and no silent submission. |
+| ApplyFlow | 35% | Selected-job launch, in-site editable Application Pack, local queue with recovery states, profile-aware draft preview, user-confirmed profile import, Supabase auth/private CV foundations, answer-memory confirmation, transparent manual fallback, and no silent submission. |
 | Simplify import | 22% | User-provided CSV/JSON/TXT/Markdown or pasted profile text is previewed, selectively mapped, and confirmed into the local profile; private CV storage is now available for approved versions. |
 | Email/Google accounts | 23% | Supabase client and Email/Google entry points are wired; provider credentials, verification, consent, account settings, and production redirect configuration remain. |
 
-ApplyFlow is therefore **about 31% complete** as an end-to-end feature. The remaining work is profile versioning, CV selection and signed downloads, Simplify tracker CSV and resume-document extraction, direct employer/ATS adapters, the browser-extension execution channel, deeper profile-backed tailoring, fit and eligibility ranking, swipe gestures, application history, and final confirmation/audit records.
+ApplyFlow is therefore **about 35% complete** as an end-to-end feature. The remaining work is profile versioning, CV selection and signed downloads, Simplify tracker CSV and resume-document extraction, direct employer/ATS adapters, the browser-extension execution channel, deeper profile-backed tailoring, fit and eligibility ranking, swipe gestures, application history, and final confirmation/audit records.

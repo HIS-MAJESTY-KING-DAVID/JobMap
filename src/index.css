@@ -340,3 +340,51 @@ button { color: inherit; }
   .apply-flow__sheet { max-height: calc(100dvh - 20px); padding: 17px; border-radius: 16px 16px 10px 10px; }
   .apply-flow h2 { font-size: 26px; }
 }
+
+.apply-flow__memory {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.apply-flow__memory h3 {
+  margin: 0.15rem 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.apply-flow__memory p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.apply-flow__memory-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.apply-flow__memory-field > span {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.apply-flow__memory-field textarea {
+  min-height: 4.2rem;
+}
+
+.apply-flow__memory-field small {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.apply-flow__memory-field input[type='checkbox'] {
+  margin-top: 0.15rem;
+  accent-color: var(--accent);
+}

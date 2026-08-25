@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getLearnedApplicationAnswers, rememberApplicationAnswer } from '../services/applicationAnswers.js';
 
 const eligibilityLabels = {
   'cameroon-eligible': 'Cameroon eligible',
@@ -14,6 +15,12 @@ const capabilityLabels = {
   manual: 'Manual source fallback',
   unsupported: 'Submission route not verified',
 };
+
+const learnedFields = [
+  { key: 'workAuthorization', label: 'Work authorization', placeholder: 'Example: Authorized to work in Cameroon; requires sponsorship elsewhere.' },
+  { key: 'sponsorship', label: 'Sponsorship', placeholder: 'Example: I may require sponsorship for this country.' },
+  { key: 'salary', label: 'Salary preference', placeholder: 'Example: USD 2,000 monthly, negotiable.' },
+];
 
 function DraftBlock({ label, children }) {
   return (
@@ -36,13 +43,17 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
   const [step, setStep] = useState('prepare');
   const [saved, setSaved] = useState(false);
   const [profile] = useState(readProfile);
+  const [learnedAnswers, setLearnedAnswers] = useState(getLearnedApplicationAnswers);
+  const [rememberAnswers, setRememberAnswers] = useState({});
   const [pack, setPack] = useState(() => {
     const initialProfile = readProfile();
+    const knownAnswers = getLearnedApplicationAnswers();
     return {
       fullName: initialProfile.fullName || '',
       targetRole: initialProfile.targetRole || job?.title || '',
       coverNote: `Hello ${job?.company || 'team'} team, I am interested in the ${job?.title || 'role'} opportunity and would welcome the chance to discuss how my experience could contribute.`,
       screeningAnswers: '',
+      learnedAnswers: Object.fromEntries(learnedFields.map(({ key }) => [key, knownAnswers[key]?.value || ''])),
     };
   });
 
@@ -51,7 +62,19 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
   const capability = job.applicationCapability || 'manual';
   const profileSkills = profile.skills || 'your saved skills and experience';
   const updatePack = (field) => (event) => setPack((current) => ({ ...current, [field]: event.target.value }));
+  const updateLearnedAnswer = (key) => (event) => setPack((current) => ({
+    ...current,
+    learnedAnswers: { ...current.learnedAnswers, [key]: event.target.value },
+  }));
+  const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
   const savePack = (status) => {
+    let answerMemory = learnedAnswers;
+    learnedFields.forEach(({ key }) => {
+      if (rememberAnswers[key] && pack.learnedAnswers[key]?.trim()) {
+        answerMemory = rememberApplicationAnswer(key, pack.learnedAnswers[key]);
+      }
+    });
+    setLearnedAnswers(answerMemory);
     onSaveApplication?.({
       id: `application-${job.id}`,
       jobId: job.id,
@@ -59,6 +82,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
       pack,
       status,
       executionRoute: capability,
+      learnedAnswerKeys: Object.keys(answerMemory),
       createdAt: new Date().toISOString(),
     });
     setSaved(true);
@@ -89,7 +113,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
             <p className="apply-flow__intro">Build the application pack here first. The employer website is only a fallback for this job; JobMap will not open it unless you choose to.</p>
             <div className="apply-flow__checks">
               <div><span>01</span><strong>Profile baseline</strong><small>{profile.fullName ? `Use ${profile.fullName} and ${profileSkills}.` : 'Add your profile details before tailoring the pack.'}</small></div>
-              <div><span>02</span><strong>Editable pack</strong><small>Review the role headline, cover note, and screening answers in JobMap.</small></div>
+              <div><span>02</span><strong>AI-assisted preparation</strong><small>JobMap can reuse approved profile facts and previously confirmed answers, but every draft remains editable.</small></div>
               <div><span>03</span><strong>Explicit approval</strong><small>Saving the pack queues it; it does not submit anything to the employer.</small></div>
             </div>
             <div className="apply-flow__actions">
@@ -101,12 +125,22 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
 
         {step === 'review' && (
           <>
-            <p className="apply-flow__intro">Edit the draft below. Empty screening answers remain your responsibility and are never invented by JobMap.</p>
+            <p className="apply-flow__intro">Edit the draft below. Empty screening answers remain your responsibility. JobMap never invents qualifications or submits sensitive answers without your confirmation.</p>
             <div className="apply-flow__editor">
               <label><span>Your name</span><input value={pack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
               <label><span>Target role</span><input value={pack.targetRole} onChange={updatePack('targetRole')} /></label>
               <label><span>Cover note</span><textarea value={pack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>
               <label><span>Screening answers</span><textarea value={pack.screeningAnswers} onChange={updatePack('screeningAnswers')} rows="4" placeholder="Answer employer questions here, or leave blank until asked." /></label>
+            </div>
+            <div className="apply-flow__memory">
+              <div><p className="results-kicker">AI-assisted answer memory</p><h3>Learn once, confirm every reuse.</h3><p>When you confirm an answer, JobMap can suggest it next time. Sensitive answers are never silently submitted.</p></div>
+              {learnedFields.map(({ key, label, placeholder }) => (
+                <label key={key} className="apply-flow__memory-field">
+                  <span>{label}{learnedAnswers[key]?.confirmations ? ` · confirmed ${learnedAnswers[key].confirmations}×` : ''}</span>
+                  <textarea value={pack.learnedAnswers[key]} onChange={updateLearnedAnswer(key)} rows="2" placeholder={learnedAnswers[key]?.value || placeholder} />
+                  <small><input type="checkbox" checked={Boolean(rememberAnswers[key])} onChange={toggleRemember(key)} /> Remember this answer for future review suggestions</small>
+                </label>
+              ))}
             </div>
             <div className="apply-flow__actions">
               <button className="primary-action" type="button" onClick={() => savePack('ready_for_approval')}>Save approved pack</button>
@@ -121,6 +155,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
             <div className="apply-flow__draft">
               <DraftBlock label="Pack status">{saved ? 'Ready for user-approved execution' : 'Saved locally'}</DraftBlock>
               <DraftBlock label="Execution route">{capabilityLabels[capability] || capabilityLabels.manual}</DraftBlock>
+              <DraftBlock label="Answer memory">{Object.keys(learnedAnswers).length ? 'Previously confirmed answers are available for future review.' : 'No answers have been remembered yet.'}</DraftBlock>
               <DraftBlock label="Next safe action">{capability === 'api' ? 'Confirm the in-site submission request.' : 'Keep this pack queued while the approved adapter or browser extension is built.'}</DraftBlock>
             </div>
             <div className="apply-flow__actions">
@@ -130,7 +165,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
           </>
         )}
 
-        <p className="apply-flow__guardrail">In-site preparation · explicit approval · no silent submission</p>
+        <p className="apply-flow__guardrail">AI-assisted preparation · explicit approval · no silent submission</p>
       </div>
     </section>
   );

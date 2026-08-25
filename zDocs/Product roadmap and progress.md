@@ -92,15 +92,15 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Simplify profile/resume import | 22% | User-provided CSV, JSON, TXT, Markdown, and pasted profile text are parsed with field-level preview and confirmation; the private CV bucket now provides the first secure storage path | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
 | Swipe discovery queue | 12% | Global Remote entry point, remote feed, and first ApplyFlow launch action are implemented; swipe gestures and queue ranking are not yet built | Swipe actions, queue ranking, undo, saved state, and explainable recommendations |
 | Fit and trust scoring | 0% | Concept defined | Explainable fit, source trust, remote eligibility badges, and no opaque exclusion |
-| Application Pack generation | 22% | Users can edit name, target role, cover note, and screening answers inside JobMap, then save an approved local pack; versioned CV and tailored generation are next | Versioned CV, cover message, screening answers, review, and audit record |
+| Application Pack generation | 28% | Users can edit name, target role, cover note, screening answers, and explicitly remembered sensitive-answer suggestions inside JobMap, then save an approved local pack; versioned CV and tailored generation are next | Versioned CV, cover message, screening answers, review, and audit record |
 
-| Hybrid assisted application | 8% | Source capability registry now distinguishes direct/API candidates from manual fallback; Supabase auth and private CV storage are readying the execution layer | Supported APIs plus guided browser handoff, final confirmation, failure recovery, and logs |
+| Hybrid assisted application | 10% | Source capability registry distinguishes direct/API candidates from manual fallback; user-confirmed answer memory now supports repeat preparation without silent sensitive-answer submission | Supported APIs plus guided browser handoff, final confirmation, failure recovery, and logs |
 | Application tracker | 18% | ApplyFlow packs are stored in a local queue with ready-for-review, needs-input, cancelled, and manual-fallback states | Applied/interview/offer/follow-up states, events, reminders, and cross-device sync |
 
 | Email and push notifications | 5% | Local notification preference exists | Consent, unsubscribe, matching jobs, delivery logs, and notification controls |
 | Global analytics and quality dashboard | 0% | Not implemented | Source health, freshness, application funnel, and privacy-safe product metrics |
 
-**Estimated overall product progress: 51%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
+**Estimated overall product progress: 52%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
 
 ## Roadmap
 
