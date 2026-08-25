@@ -24,7 +24,7 @@ ApplyFlow turns a job match into a confident next action.
 5. **Handoff** — open the canonical employer page or use an approved integration.
 6. **Track** — record the application, next action, and follow-up status.
 
-The current product implements the first guided preparation and handoff slice; the profile-backed automation layers are next.
+The current product implements the first guided preparation and handoff slice plus the first hosted profile/storage foundation; the profile-backed automation and approved execution layers are next.
 
 ## Slide 3
 Trust is the application advantage.
@@ -41,7 +41,7 @@ The architecture separates public discovery from private career data.
 
 **Public acquisition layer**
 - FNE and ReliefWeb Cameroon RSS
-- Stripe/Greenhouse and approved employer boards
+- Stripe/Greenhouse, Lever, Ashby, SmartRecruiters, and approved employer boards
 - Jobicy, Remotive, Remote OK, and We Work Remotely
 - Source adapters preserve provenance and normalize every opening
 
@@ -53,7 +53,7 @@ The architecture separates public discovery from private career data.
 **User layer**
 - Mobile-first PWA with Local/Remote modes
 - Profile, CV versions, Simplify imports, Application Pack, tracker
-- Authenticated persistence for preferences, documents, applications, and consent
+- Supabase-authenticated persistence for profiles and private CV metadata/storage, with applications and consent next
 
 ## Slide 5
 The mobile PWA is the daily operating surface.
@@ -67,19 +67,19 @@ The mobile PWA is the daily operating surface.
 Current mobile/web foundation includes responsive cards, touch targets, visible five-section navigation, unified sidebar scrolling, a local Profile workspace, install metadata, service-worker caching, and a network-first feed refresh strategy.
 
 ## Slide 6
-JobMap is 46% complete overall—and the foundation is real.
+JobMap is 51% complete overall—and the hosted privacy foundation is now real.
 
 | Workstream | Progress | Current signal |
 |---|---:|---|
 | Cameroon map, search, radius, filters | 90% | Working national discovery vertical slice |
 | Source registry and ingestion | 82% | Seven enabled source families and refreshed metadata |
-| Global remote source network | 40% | Four live global adapters with structured records |
+| Global remote source network | 43% | Four live global adapters plus verified ATS endpoint candidates |
 | Mobile-first responsive UI | 65% | Local/Remote modes, visible bottom nav, touch-first shell, unified scrolling |
 | PWA installation/offline shell | 35% | Manifest, icon, service worker, feed caching |
 | Global eligibility engine | 15% | Evidence-based badges in feed and details |
 
 ## Slide 7
-ApplyFlow is 26% complete: the in-site editable pack, local queue, and user-confirmed profile bridge are working.
+ApplyFlow is 31% complete: the in-site editable pack, local queue, user-confirmed profile bridge, Supabase auth wiring, and private CV bucket foundation are working.
 
 **Implemented now**
 - Launch ApplyFlow from a selected job.
@@ -90,20 +90,20 @@ ApplyFlow is 26% complete: the in-site editable pack, local queue, and user-conf
 - Keep the user in control with an explicit no-silent-submission guardrail.
 
 **Not implemented yet**
-- Authenticated profile and CV versions (the local profile foundation is now shipped).
+- Profile versioning and CV selection (authenticated profile sync and private bucket foundation are now shipped).
 - Simplify tracker CSV and resume-document import; profile settings bridge is now shipped.
 - Real fit scoring and eligibility-aware ranking.
 - Swipe gestures, undo, and queue ranking.
-- Authenticated profile-backed Application Pack generation and direct submission.
+- Authenticated profile-backed Application Pack generation, direct ATS submission, and browser-assisted execution.
 - Application history, reminders, approved autofill, and audit records.
 
 ## Slide 8
 The next priority is a portable, trusted applicant profile.
 
 **P0 — make ApplyFlow useful**
-- Email and Google sign-in with optional anonymous discovery.
+- Email and Google sign-in with optional anonymous discovery (client wiring shipped; provider verification/configuration remains).
 - Profile model for skills, experience, languages, timezone, authorization, salary, and target roles.
-- Private CV/document storage with versioning and deletion.
+- Private CV/document storage with user-folder RLS, metadata, versioning, signed access, and deletion.
 - Simplify Job Tracker CSV import plus PDF/DOCX/pasted-profile import with mapping preview and confirmation.
 
 **P1 — make matching smarter**
@@ -123,4 +123,4 @@ Build toward controlled automation—not blind autoapply.
 
 **North star:** JobMap should make every application faster without making the applicant less informed.
 
-Source: JobMap product roadmap and progress, Global remote source datasheet, and current application implementation status, updated 24 August 2026.
+Source: JobMap product roadmap and progress, Global remote source datasheet, Supabase auth/storage foundation, and current application implementation status, updated 25 August 2026.

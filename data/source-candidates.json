@@ -191,8 +191,29 @@
       "coverage": "Employer-specific; can be worldwide when location fields are present",
       "url": "https://hire.lever.co/developer/documentation",
       "machineEndpoint": "https://api.lever.co/v0/postings/{site}?mode=json",
+      "applicationEndpoint": "Create an application through an approved employer or partner credential path",
       "status": "ready-with-site-name",
-      "nextStep": "Add approved employer site names and derive global remote eligibility from location fields."
+      "nextStep": "Add approved employer site names and derive global remote eligibility from location fields; do not put private API keys in the browser."
+    },
+    {
+      "id": "ashby-employers",
+      "name": "Ashby employer boards",
+      "coverage": "Employer-specific; public jobs include remote/workplace type, locations, compensation, and apply URLs",
+      "url": "https://developers.ashbyhq.com/docs/public-job-posting-api",
+      "machineEndpoint": "https://api.ashbyhq.com/posting-api/job-board/{JOB_BOARD_NAME}?includeCompensation=true",
+      "applicationEndpoint": "Employer-enabled Ashby application form or approved integration; public API exposes applyUrl but not universal submission",
+      "status": "ready-public-postings-application-review",
+      "nextStep": "Add approved job-board names for ingestion and verify employer-level application/embed permissions before enabling in-site submission."
+    },
+    {
+      "id": "smartrecruiters-employers",
+      "name": "SmartRecruiters employer and partner boards",
+      "coverage": "Employer-specific; public job board API plus partner application API",
+      "url": "https://developers.smartrecruiters.com/docs/the-smartrecruiters-platform",
+      "machineEndpoint": "SmartRecruiters Job Board API",
+      "applicationEndpoint": "Application API: screening questions/privacy policies and Post an Application",
+      "status": "ready-with-partner-or-employer-credentials",
+      "nextStep": "Pursue approved partner/employer credentials and scopes; keep credentials server-side and validate job-specific questions before submission."
     },
     {
       "id": "jeme-minefop",

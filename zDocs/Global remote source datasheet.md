@@ -51,7 +51,9 @@ Simplify, Alignerr, CareerWhiz, AutoApply.Jobs, Smile & Hire, and the micro1 int
 | micro1 | Candidate assessment flow | https://www.interview.micro1.ai/start/micro1/ | Candidate interview/assessment link | User supplied candidate-specific URL | Do not ingest; candidate workflow only | P2 |
 | itsatravelod / wantremotejobs label | Directory/listing link | https://www.itsatravelod.com/find-remote-jobs | Remote-job directory link from bookmark label | User supplied URL; brand/domain mismatch requires identity verification | Revalidate ownership and feed availability before consideration | P2 |
 | Greenhouse employer boards | Employer ATS/API | https://developers.greenhouse.io/job-board.html | First-party employer roles worldwide | Existing JobMap adapter and official API pattern | Expand with approved employer board tokens and location/eligibility rules | P0 |
-| Lever employer boards | Employer ATS/API | https://hire.lever.co/developer/documentation | First-party employer roles worldwide | Existing JobMap adapter and official API pattern | Expand with approved employer site names and location/eligibility rules | P0 |
+| Lever employer boards | Employer ATS/API | https://hire.lever.co/developer/documentation | First-party employer roles worldwide | Existing JobMap adapter and official API pattern; application creation is documented but requires approved employer/partner credentials | Expand with approved employer site names and location/eligibility rules; keep submission credentials server-side | P0 |
+| Ashby employer boards | Employer ATS/API | https://developers.ashbyhq.com/docs/public-job-posting-api | First-party employer roles worldwide with explicit remote/workplace fields and apply URLs | Official public Job Postings API; public GET endpoint exposes jobs, locations, workplace type, compensation, and apply URL | Add approved job-board names for ingestion; verify employer-level application/embed permission before in-site submission | P0 |
+| SmartRecruiters employer and partner boards | Employer ATS/API | https://developers.smartrecruiters.com/docs/the-smartrecruiters-platform | First-party employer roles worldwide | Official Job Board API plus Application API for screening questions/privacy policies and Post an Application; partner/employer authentication required | Pursue approved partner/employer credentials and scopes; keep keys server-side and validate job-specific questions before submission | P0 |
 
 ## Required fields for every approved source
 
@@ -78,9 +80,13 @@ The implementation order is to add Jobicy JSON, Remotive JSON, and Remote OK JSO
 [7]: https://www.workingnomads.com/jobs "Working Nomads remote jobs"
 [8]: https://trulyremote.co/?locations=Africa "TrulyRemote Africa remote jobs"
 [9]: https://unjobs.org/ "UNJobs international vacancies"
+[10]: https://support.greenhouse.io/hc/en-us/articles/10568627186203-Greenhouse-API-overview "Greenhouse API overview"
+[11]: https://hire.lever.co/developer/documentation "Lever developer documentation"
+[12]: https://developers.ashbyhq.com/docs/public-job-posting-api "Ashby public job posting API"
+[13]: https://developers.smartrecruiters.com/docs/the-smartrecruiters-platform "SmartRecruiters API platform"
 
 ## Current implementation progress
 
-The global remote source network is **40% complete**. Jobicy, Remotive, Remote OK, and We Work Remotely are active through public JSON/RSS adapters and have returned live postings. The global eligibility engine is **15% complete**: JobMap stores and displays evidence-based worldwide, Africa-eligible, Cameroon-eligible, restricted, and unclear labels, but country restrictions, timezone overlap, work authorization, sponsorship, and language matching are not yet fully normalized.
+The global remote source network is **43% complete**. Jobicy, Remotive, Remote OK, and We Work Remotely are active through public JSON/RSS adapters and have returned live postings. The global eligibility engine is **15% complete**: JobMap stores and displays evidence-based worldwide, Africa-eligible, Cameroon-eligible, restricted, and unclear labels, but country restrictions, timezone overlap, work authorization, sponsorship, and language matching are not yet fully normalized.
 
-ApplyFlow is **12% complete**. The source inventory is ready for future application workflows, and the first user-controlled review panel can open from a selected job. Profile-backed tailoring, Simplify imports, source-specific application capabilities, and application-history persistence remain to be built.
+ApplyFlow is **31% complete**. JobMap now has a local Application Pack editor and queue, a user-provided Simplify profile bridge, a private Supabase CV bucket, hosted Email/Google authentication wiring, and a source capability registry. Direct ATS submission, application event history, browser-assisted execution, and cross-device profile sync remain ahead.

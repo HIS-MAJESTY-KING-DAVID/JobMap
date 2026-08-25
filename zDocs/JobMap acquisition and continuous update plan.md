@@ -65,7 +65,7 @@ A source failure must not erase valid prior jobs immediately. A posting should r
 
 ## Progress tracker
 
-Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **46% overall**, weighted toward the working Cameroon discovery foundation, the Local/Remote and PWA foundation, live global feed adapters, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge. Account persistence, private document storage, direct submission adapters, Simplify tracker/resume import, swipe interactions, deeper eligibility, and controlled automation are mostly planned rather than implemented.
+Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20and%20progress.md). The current estimate is **51% overall**, weighted toward the working Cameroon discovery foundation, the Local/Remote and PWA foundation, live global feed adapters, the visible section navigation, the in-site editable ApplyFlow queue, the first user-confirmed Simplify profile bridge, Supabase auth wiring, and private CV storage. Provider verification, profile versions, direct submission adapters, Simplify tracker/resume import, swipe interactions, deeper eligibility, and controlled automation remain ahead.
 
 ## Delivery sequence
 
@@ -76,7 +76,7 @@ Progress is tracked in [`Product roadmap and progress.md`](Product%20roadmap%20a
 | Accounts | Email/Google account and profile | Preferences, documents, and profile versions persist securely across devices. |
 | Imports | Simplify tracker CSV and resume/profile import | User sees mappings and confirms before data is saved. Profile settings import from user-provided CSV/JSON/TXT/Markdown is now shipped; tracker CSV and resume-document extraction remain. |
 | Remote | Global remote feed and eligibility | Cameroon-based users see only clearly labelled eligible or uncertain roles. |
-| ApplyFlow | Swipe queue, Application Pack, tracker | User can move from match to reviewed application and follow-up status. The current milestone is a 26% in-site editable pack, local queue, and user-confirmed Simplify profile bridge with explicit approval, recovery states, manual fallback, and no silent submission. |
+| ApplyFlow | Swipe queue, Application Pack, tracker | User can move from match to reviewed application and follow-up status. The current milestone is a 31% in-site editable pack, local queue, user-confirmed Simplify profile bridge, Supabase auth/private CV foundations, explicit approval, recovery states, manual fallback, and no silent submission. |
 
 | Automation | Supported API and guided browser handoff | Each integration is permissioned, auditable, reversible, and final-submission controlled. |
 

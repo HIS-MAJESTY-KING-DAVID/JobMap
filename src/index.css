@@ -274,6 +274,18 @@ button { color: inherit; }
 .application-item__actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .application-item__actions > * { min-height: 31px; padding: 0 8px; font-size: 9px; }
 .application-queue__back { margin-top: 18px; }
+.auth-panel { display: grid; gap: 10px; margin: 18px 0 22px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #f7faf7; }
+.auth-panel__heading, .auth-panel__topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.auth-panel h2 { margin-top: 5px; color: var(--ink); font-size: 16px; letter-spacing: -0.04em; }
+.auth-panel > p, .auth-panel > span { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.auth-panel__form { display: grid; gap: 8px; }
+.auth-panel__form input { width: 100%; min-height: 35px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-size: 10px; }
+.auth-panel__google { min-height: 35px; }
+.auth-panel__switch { border: 0; background: transparent; color: var(--sea); font-size: 9px; text-align: left; cursor: pointer; }
+.auth-panel__file { display: grid; gap: 6px; color: var(--sea); font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.auth-panel__file input { width: 100%; padding: 8px; border: 1px dashed #a5bcae; border-radius: 7px; background: #fff; color: var(--muted); font: 500 10px 'Manrope', sans-serif; text-transform: none; }
+.auth-panel__files { display: grid; gap: 4px; margin: 0; padding-left: 15px; color: var(--muted); font-size: 9px; }
+.auth-panel__status { color: var(--sea); font-size: 9px; line-height: 1.4; }
 .simplify-import { margin: 18px 0 22px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #f7faf7; }
 .simplify-import__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .simplify-import__heading h2 { margin-top: 5px; color: var(--ink); font-size: 16px; letter-spacing: -0.04em; }

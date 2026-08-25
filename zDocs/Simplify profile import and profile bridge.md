@@ -1,7 +1,7 @@
 # Simplify profile import and profile bridge
 
-**Last updated:** 24 August 2026  
-**Status:** First local import slice shipped
+**Last updated:** 25 August 2026  
+**Status:** Local import plus hosted auth/CV foundation shipped
 
 ## Product decision
 
@@ -19,15 +19,15 @@ The preview reports the detected format, recognized fields, and unmapped keys. U
 
 | Area | Previous | Current | Remaining |
 |---|---:|---:|---|
-| Simplify profile/resume import | 5% | **18%** | Resume PDF/DOCX extraction, richer section mapping, duplicate handling, profile versioning, and authenticated storage |
-| ApplyFlow profile foundation | 22% | **26%** | Profile-backed tailoring, CV versions, direct APIs, browser-assisted execution, and audit records |
-| Overall JobMap product | 44% | **46%** | Accounts, private documents, eligibility ranking, swipe queue, application execution, and cross-device sync |
+| Simplify profile/resume import | 18% | **22%** | Resume PDF/DOCX extraction, richer section mapping, duplicate handling, profile versioning, and authenticated storage |
+| ApplyFlow profile foundation | 26% | **31%** | Profile-backed tailoring, CV versions, direct APIs, browser-assisted execution, and audit records |
+| Overall JobMap product | 46% | **51%** | Provider configuration, profile versions, eligibility ranking, swipe queue, application execution, audit history, and cross-device sync |
 
-These percentages reflect functional scope, not the volume of code. The importer is usable for local profile settings but is not yet a secure cross-device account feature.
+These percentages reflect functional scope, not the volume of code. The importer remains user-initiated, while Supabase Email/Google client wiring, the user-owned profile table, and a private CV bucket now provide the first hosted persistence foundation. Production provider configuration, account recovery, CV versioning, and cross-device ApplyFlow sync remain ahead.
 
 ## Next slice
 
-The next recommended work is a reviewable resume import lane. It should accept user-provided PDF, DOCX, or plain-text resumes, extract candidate sections without inventing facts, display the proposed mapping, and let the user approve a new profile or CV version. That work should be followed by authenticated storage and version history before any browser-assisted submission is enabled.
+The next recommended work is to finish the authenticated profile lane: configure Email verification and Google OAuth, claim the staged user-provided CVs to the account, add CV version selection and signed downloads, and then add Simplify Tracker CSV import. Direct ATS submission and browser-assisted execution should remain blocked until profile provenance, consent, duplicate prevention, and audit events are complete.
 
 ## References
 

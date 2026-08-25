@@ -1,6 +1,6 @@
 # JobMap product roadmap and progress
 
-**Last updated:** 24 August 2026  
+**Last updated:** 25 August 2026  
 **Product direction:** Cameroon-first job discovery expanding to worldwide remote applications.
 
 ## Product thesis
@@ -78,29 +78,29 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Cameroon map, search, radius, and filters | 90% | Working vertical slice with city and radius behavior | Production UX polish, accessibility pass, and source-quality edge cases completed |
 | Source registry and ingestion pipeline | 82% | Greenhouse, RSS, ReliefWeb RSS, FNE, Jobicy, Remotive, and Remote OK adapters are present; refreshed metadata is published | Reliable scheduled runtime, retries, source-health monitoring, and documented permissions |
 | Credible Cameroon-wide sources | 65% | FNE and ReliefWeb RSS are activated in the current feed; institutional and employer expansion remains | Regional coverage audit, freshness checks, and publisher relationships |
-| Global remote source network | 40% | Jobicy, Remotive, Remote OK, and WWR adapters are implemented and returned live postings; source expansion remains | Multiple approved global remote feeds with country and timezone eligibility fields |
+| Global remote source network | 43% | Jobicy, Remotive, Remote OK, and WWR adapters are implemented and returned live postings; Greenhouse, Lever, Ashby, and SmartRecruiters endpoint candidates are now documented | Multiple approved global remote feeds with country and timezone eligibility fields |
 | Global remote eligibility engine | 15% | Feed records now carry evidence-based worldwide/Africa/Cameroon/restricted/unclear labels and detail-panel badges | Country, timezone, contract, language, sponsorship, salary, and work-authorization logic |
 | Mobile-first responsive UI | 65% | Local/Remote mode controls, mobile spacing, touch-sized cards, visible bottom section navigation, and a unified scrollable sidebar are implemented across desktop and mobile | Mobile navigation, thumb actions, responsive cards, keyboard/accessibility, and performance pass |
 
 | PWA installation and offline shell | 35% | Manifest, icon, service worker, app-shell caching, and network-first feed caching are implemented | Manifest, icons, service worker, caching strategy, offline saved state, and install QA |
-| Email sign-in | 0% | Decision confirmed; backend not yet migrated | Verified email auth, recovery, session security, consent, and account settings |
-| Google sign-in | 0% | Decision confirmed; provider integration not yet configured | Secure OAuth flow, account linking, consent, and unlink/recovery behavior |
-| User profile and preferences | 12% | A local-first Profile workspace now captures reusable role, skills, languages, timezone, authorization, and salary preferences | Persistent authenticated profile, profile versioning, and cross-device sync |
+| Email sign-in | 25% | Supabase client wiring and sign-in/sign-up UI are implemented; provider email templates and production verification settings remain | Verified email auth, recovery, session security, consent, and account settings |
+| Google sign-in | 20% | Supabase OAuth client wiring and Google entry point are implemented; Google provider credentials and redirect configuration remain | Secure OAuth flow, account linking, consent, and unlink/recovery behavior |
+| User profile and preferences | 28% | Local-first profile now loads and saves against the authenticated Supabase `profiles` table when a session exists, while retaining local fallback | Persistent authenticated profile, profile versioning, and cross-device sync |
 
-| CV/document storage | 0% | Requirements defined | Secure upload, private storage, metadata, versioning, deletion, and document selection |
+| CV/document storage | 42% | Private `cv-documents` Supabase bucket, user-folder RLS policy, upload control, and `cv_documents` metadata table are implemented; deletion, signed downloads, and CV selection remain | Secure upload, private storage, metadata, versioning, deletion, and document selection |
 | Simplify tracker CSV import | 0% | Import design defined from official CSV documentation | Mapping preview, validation, deduplication, status/date/link import, and confirmation |
-| Simplify profile/resume import | 18% | User-provided CSV, JSON, TXT, Markdown, and pasted profile text are parsed with field-level preview and confirmation; resume document extraction remains next | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
+| Simplify profile/resume import | 22% | User-provided CSV, JSON, TXT, Markdown, and pasted profile text are parsed with field-level preview and confirmation; the private CV bucket now provides the first secure storage path | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
 | Swipe discovery queue | 12% | Global Remote entry point, remote feed, and first ApplyFlow launch action are implemented; swipe gestures and queue ranking are not yet built | Swipe actions, queue ranking, undo, saved state, and explainable recommendations |
 | Fit and trust scoring | 0% | Concept defined | Explainable fit, source trust, remote eligibility badges, and no opaque exclusion |
 | Application Pack generation | 22% | Users can edit name, target role, cover note, and screening answers inside JobMap, then save an approved local pack; versioned CV and tailored generation are next | Versioned CV, cover message, screening answers, review, and audit record |
 
-| Hybrid assisted application | 5% | The first user-controlled handoff is available from a selected job; API adapters, form assistance, final confirmation, and logs are not yet implemented | Supported APIs plus guided browser handoff, final confirmation, failure recovery, and logs |
+| Hybrid assisted application | 8% | Source capability registry now distinguishes direct/API candidates from manual fallback; Supabase auth and private CV storage are readying the execution layer | Supported APIs plus guided browser handoff, final confirmation, failure recovery, and logs |
 | Application tracker | 18% | ApplyFlow packs are stored in a local queue with ready-for-review, needs-input, cancelled, and manual-fallback states | Applied/interview/offer/follow-up states, events, reminders, and cross-device sync |
 
 | Email and push notifications | 5% | Local notification preference exists | Consent, unsubscribe, matching jobs, delivery logs, and notification controls |
 | Global analytics and quality dashboard | 0% | Not implemented | Source health, freshness, application funnel, and privacy-safe product metrics |
 
-**Estimated overall product progress: 46%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
+**Estimated overall product progress: 51%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
 
 ## Roadmap
 
@@ -114,7 +114,7 @@ These percentages are **product-delivery estimates**, not automated test coverag
 
 ## Open risks and safeguards
 
-Simplify import must remain user-initiated and should rely on documented exports or files the user provides. Employer application pages can change, restrict automation, or contain sensitive questions, so the product needs an allowlist, graceful fallback to guided handoff, and explicit final confirmation. Remote work eligibility is often ambiguous; JobMap should display uncertainty rather than overpromise. Personal documents and application answers require encryption, access controls, retention settings, and deletion support before public launch.
+Simplify import must remain user-initiated and should rely on documented exports or files the user provides. Employer application pages can change, restrict automation, or contain sensitive questions, so the product needs an allowlist, graceful fallback to guided handoff, and explicit final confirmation. Remote work eligibility is often ambiguous; JobMap should display uncertainty rather than overpromise. Personal documents and application answers require encryption, access controls, retention settings, and deletion support before public launch. User deletion requests should remove user-visible records immediately while retaining an access-restricted deletion tombstone and eligible backups for 90 days before purge.
 
 ## References
 

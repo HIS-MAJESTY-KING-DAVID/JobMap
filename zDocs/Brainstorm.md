@@ -56,18 +56,18 @@ The next design discussion should settle which remote sources are allowed in the
 
 ## Current implementation snapshot
 
-The current estimated product progress is **46% overall**. ApplyFlow now has an editable in-site Application Pack and a user-confirmed Simplify profile bridge: a user can select a job, review and edit the role headline, cover note, and screening answers inside JobMap, import selected profile fields from a user-provided Simplify export or copied text, save the pack into a local queue, and choose a transparent manual fallback. The flow remains user-controlled and does not submit applications automatically. The sidebar scrolls as one surface and keeps the five section buttons visible on web and mobile.
+The current estimated product progress is **51% overall**. ApplyFlow now has an editable in-site Application Pack, a user-confirmed Simplify profile bridge, Supabase Email/Google auth wiring, a private CV bucket, and a profile sync foundation: a user can select a job, review and edit the role headline, cover note, and screening answers inside JobMap, import selected profile fields from a user-provided Simplify export or copied text, save the pack into a local queue, and choose a transparent manual fallback. The flow remains user-controlled and does not submit applications automatically. The sidebar scrolls as one surface and keeps the five section buttons visible on web and mobile.
 
 | Feature area | Progress |
 |---|---:|
 | Mobile-first responsive UI | 65% |
 | PWA installation and offline shell | 35% |
-| Global remote source network | 40% |
+| Global remote source network | 43% |
 | Global remote eligibility engine | 15% |
 | Swipe discovery queue | 12% |
 | Application Pack generation | 22% |
-| Hybrid assisted application | 5% |
-| Simplify profile/resume import | 18% |
-| Email and Google sign-in | 0% |
+| Hybrid assisted application | 8% |
+| Simplify profile/resume import | 22% |
+| Email and Google sign-in | 23% |
 
-The remaining ApplyFlow work is profile-backed tailoring, Simplify tracker CSV and resume-document import, eligibility-aware ranking, swipe gestures, application history, form assistance through approved paths, and final user confirmation with audit records.
+The remaining ApplyFlow work is profile versioning, CV selection and signed downloads, Simplify tracker CSV and resume-document import, eligibility-aware ranking, swipe gestures, application history, form assistance through approved paths, and final user confirmation with audit records.

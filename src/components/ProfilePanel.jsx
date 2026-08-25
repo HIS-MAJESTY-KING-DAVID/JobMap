@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { parseSimplifyExport, readSimplifyFile } from '../services/simplifyImport';
+import AuthPanel from './AuthPanel';
+import { loadRemoteProfile, saveRemoteProfile, supabase } from '../services/supabase';
 
 const PROFILE_KEY = 'jobmap-profile';
 const emptyProfile = {
@@ -22,15 +24,37 @@ export default function ProfilePanel({ onBack }) {
   const [selectedImportKeys, setSelectedImportKeys] = useState([]);
   const [pasteText, setPasteText] = useState('');
   const [importError, setImportError] = useState('');
+  const [syncStatus, setSyncStatus] = useState('');
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+    let active = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return;
+      try {
+        const remoteProfile = await loadRemoteProfile(data.session.user.id);
+        if (active && remoteProfile) setProfile((current) => ({ ...current, ...remoteProfile }));
+      } catch { setSyncStatus('Signed in, but the remote profile could not be loaded.'); }
+    });
+    return () => { active = false; };
+  }, []);
 
   const update = (field) => (event) => {
     setSaved(false);
     setProfile((current) => ({ ...current, [field]: event.target.value }));
   };
-  const saveProfile = (event) => {
+  const saveProfile = async (event) => {
     event.preventDefault();
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     setSaved(true);
+    setSyncStatus('');
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        try { await saveRemoteProfile(profile, data.session.user.id); setSyncStatus('Synced privately to your account.'); }
+        catch { setSyncStatus('Saved locally; remote sync needs attention.'); }
+      }
+    }
   };
   const previewImport = (result) => {
     setImportError(''); setImportResult(result); setSelectedImportKeys(result.fields.map((field) => field.key));
@@ -54,7 +78,8 @@ export default function ProfilePanel({ onBack }) {
   return (
     <section className="profile-panel" aria-label="Job seeker profile">
       <div className="profile-panel__heading"><div><p className="results-kicker">ApplyFlow foundation</p><h1>Your profile</h1></div><span className="profile-panel__status">Local draft</span></div>
-      <p className="profile-panel__intro">Build once, then reuse an approved profile across remote applications. This draft stays on this device until accounts and private storage ship.</p>
+      <p className="profile-panel__intro">Build once, then reuse an approved profile across remote applications. Keep it local-first or sign in to sync it privately across devices.</p>
+      <AuthPanel />
       <div className="simplify-import">
         <div className="simplify-import__heading"><div><p className="results-kicker">Simplify bridge</p><h2>Import profile settings</h2></div><span className="profile-panel__status">User-provided only</span></div>
         <p>Export or copy your Simplify profile details, then preview the mappings before anything replaces your JobMap profile. Credentials and private extension storage are never requested.</p>
@@ -78,9 +103,10 @@ export default function ProfilePanel({ onBack }) {
         <label><span>Education</span><textarea value={fieldValue(profile, 'education')} onChange={update('education')} rows="2" placeholder="Degrees, schools, or training" /></label>
         <label><span>Experience</span><textarea value={fieldValue(profile, 'experience')} onChange={update('experience')} rows="3" placeholder="Roles, employers, and measurable outcomes" /></label>
         <div className="profile-form__grid"><label><span>LinkedIn</span><input value={fieldValue(profile, 'linkedin')} onChange={update('linkedin')} placeholder="https://linkedin.com/in/..." /></label><label><span>Portfolio</span><input value={fieldValue(profile, 'portfolio')} onChange={update('portfolio')} placeholder="https://..." /></label></div>
-        <div className="profile-panel__actions"><button className="primary-action" type="submit">{saved ? 'Profile saved' : 'Save local profile'}</button><button className="secondary-action" type="button" onClick={onBack}>Back to jobs</button></div>
+        <div className="profile-panel__actions"><button className="primary-action" type="submit">{saved ? 'Profile saved' : 'Save profile'}</button><button className="secondary-action" type="button" onClick={onBack}>Back to jobs</button></div>
       </form>
-      <p className="profile-panel__note">Next: authenticated profile versions, private CV storage, and approved application adapters.</p>
+      {syncStatus && <p className="profile-panel__note">{syncStatus}</p>}
+      <p className="profile-panel__note">Next: profile versions, CV selection in Application Packs, and approved application adapters.</p>
     </section>
   );
 }
