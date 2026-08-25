@@ -393,3 +393,68 @@ button { color: inherit; }
   margin-top: 0.15rem;
   accent-color: var(--accent);
 }
+
+
+.apply-flow__autofill {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.apply-flow__autofill h3 {
+  margin: 0.15rem 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.apply-flow__autofill p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.apply-flow__autofill-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.apply-flow__autofill-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.apply-flow__autofill-row span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.apply-flow__autofill-row strong {
+  color: var(--ink);
+  font-size: 0.76rem;
+}
+
+.apply-flow__autofill-row small,
+.apply-flow__autofill-row em {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.apply-flow__autofill-row em {
+  color: var(--sea);
+  font-style: normal;
+  text-align: right;
+}
+
+@media (max-width: 500px) {
+  .apply-flow__autofill-row { grid-template-columns: 1fr; gap: 0.25rem; }
+  .apply-flow__autofill-row em { text-align: left; }
+}

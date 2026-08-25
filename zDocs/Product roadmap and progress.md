@@ -145,3 +145,19 @@ ApplyFlow now receives the authenticated Supabase session, synced profile, and p
 | Hybrid assisted application | 14% | Account-aware preparation is working; direct ATS submission, browser assistance, audit events, and final confirmation remain. |
 
 The implementation remains conservative: missing GPA, education, skills, experience, links, salary, and other facts are not invented. Sensitive values are displayed for review and are never silently submitted.
+
+
+## ApplyFlow autofill engine milestone — 25 August 2026
+
+The first complete autofill-policy slice is now implemented. ApplyFlow classifies normalized employer fields into safe profile, safe CV, generated draft, sensitive, legal attestation, unknown, or blocked categories; maps only source-backed values; shows confidence and review state; creates a ten-minute origin-bound handoff bundle; and records the bundle in the local application pack. Confirmed answer memory now supports an explicit unassisted-reuse request after three confirmations for eligible non-legal, non-blocked fields. CAPTCHA, credentials, login, MFA, payment, identity verification, legal attestations, and unknown fields remain user-controlled.
+
+| Feature area | Updated progress | Current state |
+|---|---:|---|
+| Profile-aware ApplyFlow | 55% | Authenticated profile facts, selected private CV, source-backed mapping, and review state are connected. |
+| Application Pack generation | 52% | Application packs include an autofill bundle, selected CV, editable drafts, and review metadata. |
+| Autofill classification and review | 35% | Ten-step policy engine and mobile-safe source/status rows are implemented. |
+| Confirmed answer learning | 38% | User-confirmed sensitive answers are reused as suggestions and remain revocable. |
+| Unassisted reuse policy | 20% | Three-confirmation threshold and explicit user opt-in are implemented for eligible fields. |
+| Browser-extension handoff | 12% | Expiring origin-bound bundle contract is ready; extension executor remains ahead. |
+| Direct ATS/API execution | 8% | Application schema supports bundle persistence; approved adapter execution remains ahead. |
+| Overall JobMap product | 54% | Updated estimate reflects account-aware ApplyFlow and the autofill policy slice. |

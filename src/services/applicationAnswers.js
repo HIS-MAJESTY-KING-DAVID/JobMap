@@ -21,16 +21,20 @@ export function getLearnedApplicationAnswers() {
   return readAnswers();
 }
 
-export function rememberApplicationAnswer(key, value, source = 'user-confirmed') {
+export function rememberApplicationAnswer(key, value, options = {}) {
   if (!key || !value?.trim()) return readAnswers();
   const answers = readAnswers();
   const previous = answers[key] || { confirmations: 0 };
+  const source = typeof options === 'string' ? options : options.source || 'user-confirmed';
+  const requestedUnassisted = typeof options === 'object' && options.unassisted === true;
+  const confirmations = previous.confirmations + 1;
   const next = {
     ...answers,
     [key]: {
       value: value.trim(),
-      confirmations: previous.confirmations + 1,
+      confirmations,
       source,
+      unassisted: Boolean(previous.unassisted || (requestedUnassisted && confirmations >= 3)),
       updatedAt: new Date().toISOString(),
     },
   };
