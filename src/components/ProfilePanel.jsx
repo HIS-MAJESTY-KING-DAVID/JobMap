@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { parseSimplifyExport, readSimplifyFile } from '../services/simplifyImport';
 import AuthPanel from './AuthPanel';
-import { loadRemoteProfile, saveRemoteProfile, supabase } from '../services/supabase';
+import { saveRemoteProfile, supabase } from '../services/supabase';
 
 const PROFILE_KEY = 'jobmap-profile';
 const emptyProfile = {
@@ -17,27 +17,14 @@ function readProfile() {
 
 function fieldValue(profile, key) { return profile[key] || ''; }
 
-export default function ProfilePanel({ onBack }) {
-  const [profile, setProfile] = useState(readProfile);
+export default function ProfilePanel({ onBack, session, profile: providedProfile, cvDocuments = [], onCvDocumentsChange }) {
+  const [profile, setProfile] = useState(() => ({ ...readProfile(), ...(providedProfile || {}) }));
   const [saved, setSaved] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [selectedImportKeys, setSelectedImportKeys] = useState([]);
   const [pasteText, setPasteText] = useState('');
   const [importError, setImportError] = useState('');
   const [syncStatus, setSyncStatus] = useState('');
-
-  useEffect(() => {
-    if (!supabase) return undefined;
-    let active = true;
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) return;
-      try {
-        const remoteProfile = await loadRemoteProfile(data.session.user.id);
-        if (active && remoteProfile) setProfile((current) => ({ ...current, ...remoteProfile }));
-      } catch { setSyncStatus('Signed in, but the remote profile could not be loaded.'); }
-    });
-    return () => { active = false; };
-  }, []);
 
   const update = (field) => (event) => {
     setSaved(false);
@@ -77,9 +64,9 @@ export default function ProfilePanel({ onBack }) {
 
   return (
     <section className="profile-panel" aria-label="Job seeker profile">
-      <div className="profile-panel__heading"><div><p className="results-kicker">ApplyFlow foundation</p><h1>Your profile</h1></div><span className="profile-panel__status">Local draft</span></div>
+      <div className="profile-panel__heading"><div><p className="results-kicker">ApplyFlow foundation</p><h1>Your profile</h1></div><span className="profile-panel__status">{session ? 'Synced account' : 'Local draft'}</span></div>
       <p className="profile-panel__intro">Build once, then reuse an approved profile across remote applications. Keep it local-first or sign in to sync it privately across devices.</p>
-      <AuthPanel />
+      <AuthPanel session={session} cvFiles={cvDocuments.map((file) => ({ ...file, path: file.storage_path, name: file.file_name }))} onCvFilesChange={(uploaded) => onCvDocumentsChange?.([...uploaded, ...cvDocuments])} />
       <div className="simplify-import">
         <div className="simplify-import__heading"><div><p className="results-kicker">Simplify bridge</p><h2>Import profile settings</h2></div><span className="profile-panel__status">User-provided only</span></div>
         <p>Export or copy your Simplify profile details, then preview the mappings before anything replaces your JobMap profile. Credentials and private extension storage are never requested.</p>

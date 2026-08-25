@@ -131,3 +131,17 @@ The Supabase database now includes a Prisma-compatible application model and exe
 | Profile and CV persistence | 52% | GPA/preferences columns, private CV metadata, Storage path policy, and version-ready tables deployed. UI version selection, signed downloads, and account claiming remain. |
 | ApplyFlow persistence | 43% | Applications, duplicate fingerprints, Application Pack fields, answer memory, and event tables deployed. UI synchronization and direct ATS adapters remain. |
 | Privacy and authorization | 58% | Shared/user-owned boundaries, private Storage policies, and 90-day deletion schedule deployed. Formal security review and retention worker remain. |
+
+
+## Authenticated ApplyFlow prefill milestone — 25 August 2026
+
+ApplyFlow now receives the authenticated Supabase session, synced profile, and private CV metadata from the application shell. Signed-in users no longer see the `Account / Sign in` trigger in the sidebar. The Application Pack pre-fills the verified name and target role, reuses previously confirmed sensitive answers where available, carries forward explicitly provided authorization and sponsorship facts for review, and presents the user’s private CV versions with the default CV selected. The four existing CV files were claimed by the verified account and registered in `public.cv_documents` with version labels.
+
+| Feature area | Updated progress | Current state |
+|---|---:|---|
+| User profile and preferences | 38% | Authenticated profile is loaded into the application shell and reused by Profile and ApplyFlow. |
+| CV/document storage | 55% | Four private CV objects are linked to the authenticated profile and exposed as selectable Application Pack documents. Signed downloads, deletion, and full version management remain. |
+| Application Pack generation | 42% | Name, target role, approved CV, cover note, screening draft, and confirmed sensitive-answer suggestions are available in-site. |
+| Hybrid assisted application | 14% | Account-aware preparation is working; direct ATS submission, browser assistance, audit events, and final confirmation remain. |
+
+The implementation remains conservative: missing GPA, education, skills, experience, links, salary, and other facts are not invented. Sensitive values are displayed for review and are never silently submitted.

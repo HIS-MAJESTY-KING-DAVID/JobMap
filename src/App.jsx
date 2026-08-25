@@ -6,6 +6,7 @@ import MapContainer from './components/MapContainer';
 import Sidebar from './components/Sidebar';
 import { cameroonLocations, defaultLocationId, getLocationById } from './data/locations';
 import { fetchJobs, filterJobs, getNewestDate } from './services/JobService';
+import { listCvDocuments, loadRemoteProfile, subscribeToAuth, supabase } from './services/supabase';
 import {
     getAlertedJobIds,
   getAlertsEnabled,
@@ -22,8 +23,15 @@ import {
   updateApplication,
 } from './services/storage';
 
+function readLocalProfile() {
+  try { return JSON.parse(localStorage.getItem('jobmap-profile') || '{}'); } catch { return {}; }
+}
+
 function App() {
   const [jobs, setJobs] = useState([]);
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(readLocalProfile);
+  const [cvDocuments, setCvDocuments] = useState([]);
   const [query, setQuery] = useState('');
   const [locationId, setLocationId] = useState(defaultLocationId);
   const [radiusKm, setRadiusKm] = useState(0);
@@ -41,6 +49,34 @@ function App() {
   const [alertEnabled, setAlertEnabled] = useState(() => getAlertsEnabled());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+    let active = true;
+    const syncAccount = async (nextSession) => {
+      if (!active) return;
+      setSession(nextSession);
+      if (!nextSession?.user?.id) {
+        setCvDocuments([]);
+        setProfile(readLocalProfile());
+        return;
+      }
+      try {
+        const [remoteProfile, documents] = await Promise.all([
+          loadRemoteProfile(nextSession.user.id),
+          listCvDocuments(nextSession.user.id),
+        ]);
+        if (!active) return;
+        if (remoteProfile) setProfile((current) => ({ ...current, ...remoteProfile }));
+        setCvDocuments(documents || []);
+      } catch {
+        if (active) setError('Signed in, but your private profile or CV list could not be loaded.');
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => syncAccount(data.session));
+    const unsubscribe = subscribeToAuth(syncAccount);
+    return () => { active = false; unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -181,6 +217,10 @@ function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         applications={applications}
+        session={session}
+        profile={profile}
+        cvDocuments={cvDocuments}
+        onCvDocumentsChange={(documents) => setCvDocuments(documents)}
         onUpdateApplication={(applicationId, patch) => {
           setApplications(updateApplication(applicationId, patch));
         }}
@@ -210,7 +250,7 @@ function App() {
                 <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
 
             </section>
-      <ApplyFlowPanel job={applyJob} onClose={() => setApplyJob(null)} onSaveApplication={saveCurrentApplication} />
+      <ApplyFlowPanel job={applyJob} profile={profile} cvDocuments={cvDocuments} session={session} onClose={() => setApplyJob(null)} onSaveApplication={saveCurrentApplication} />
     </main>
 
   );

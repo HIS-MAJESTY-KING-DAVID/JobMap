@@ -62,6 +62,10 @@ export default function Sidebar({
   onTabChange,
   applications,
   onUpdateApplication,
+  session,
+  profile,
+  cvDocuments,
+  onCvDocumentsChange,
 }) {
 
   const currentLocation = locations.find((location) => location.id === locationId) || locations[0];
@@ -78,7 +82,7 @@ export default function Sidebar({
         </div>
                 <div className="sidebar__account-row">
           <div className="location-chip"><span className="status-dot" /> {appMode === 'remote' ? 'Remote worldwide · from Cameroon' : currentLocation.name}</div>
-          <button className="account-entry" type="button" onClick={() => onTabChange('profile')} aria-label="Open account and sign in">Account / Sign in</button>
+          {!session && <button className="account-entry" type="button" onClick={() => onTabChange('profile')} aria-label="Open account and sign in">Account / Sign in</button>}
         </div>
         <div className="mode-switch" aria-label="Job discovery mode">
           <button className={appMode === 'local' ? 'mode-switch__button mode-switch__button--active' : 'mode-switch__button'} onClick={() => onModeChange('local')} type="button">
@@ -158,7 +162,7 @@ export default function Sidebar({
         )}
       </div>
 
-            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onBack={() => onTabChange('discover')} /> : activeTab === 'profile' ? <ProfilePanel onBack={() => onTabChange('discover')} /> : <>
+            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onBack={() => onTabChange('discover')} /> : activeTab === 'profile' ? <ProfilePanel session={session} profile={profile} cvDocuments={cvDocuments} onCvDocumentsChange={onCvDocumentsChange} onBack={() => onTabChange('discover')} /> : <>
       <div className="results-header">
 
         <div>

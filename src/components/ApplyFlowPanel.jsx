@@ -39,21 +39,29 @@ function readProfile() {
   }
 }
 
-export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
+export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocuments = [], session, onClose, onSaveApplication }) {
   const [step, setStep] = useState('prepare');
   const [saved, setSaved] = useState(false);
-  const [profile] = useState(readProfile);
+  const [profile] = useState(() => ({ ...readProfile(), ...(providedProfile || {}) }));
   const [learnedAnswers, setLearnedAnswers] = useState(getLearnedApplicationAnswers);
   const [rememberAnswers, setRememberAnswers] = useState({});
   const [pack, setPack] = useState(() => {
-    const initialProfile = readProfile();
+    const initialProfile = { ...readProfile(), ...(providedProfile || {}) };
     const knownAnswers = getLearnedApplicationAnswers();
+    const employment = initialProfile.preferences?.employment || {};
+    const accountAnswers = {
+      workAuthorization: initialProfile.workAuthorization || (employment.authorizedToWorkUS === false && employment.authorizedToWorkCanada === false && employment.authorizedToWorkUK === false ? 'Not authorized to work in the US, Canada, or UK; authorized to work in Cameroon.' : ''),
+      sponsorship: employment.requiresVisaSponsorship === false ? 'No sponsorship required based on my saved profile.' : '',
+      salary: initialProfile.salaryPreference || '',
+    };
+    const defaultCv = cvDocuments.find((document) => document.is_default) || cvDocuments[0];
     return {
       fullName: initialProfile.fullName || '',
       targetRole: initialProfile.targetRole || job?.title || '',
       coverNote: `Hello ${job?.company || 'team'} team, I am interested in the ${job?.title || 'role'} opportunity and would welcome the chance to discuss how my experience could contribute.`,
       screeningAnswers: '',
-      learnedAnswers: Object.fromEntries(learnedFields.map(({ key }) => [key, knownAnswers[key]?.value || ''])),
+      cvDocumentId: defaultCv?.id || '',
+      learnedAnswers: Object.fromEntries(learnedFields.map(({ key }) => [key, knownAnswers[key]?.value || accountAnswers[key] || ''])),
     };
   });
 
@@ -125,10 +133,11 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
 
         {step === 'review' && (
           <>
-            <p className="apply-flow__intro">Edit the draft below. Empty screening answers remain your responsibility. JobMap never invents qualifications or submits sensitive answers without your confirmation.</p>
+            <p className="apply-flow__intro">Your saved account facts are already included below. Edit the draft as needed; empty screening answers remain your responsibility. JobMap never invents qualifications or submits sensitive answers without your confirmation.</p>
             <div className="apply-flow__editor">
               <label><span>Your name</span><input value={pack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
               <label><span>Target role</span><input value={pack.targetRole} onChange={updatePack('targetRole')} /></label>
+              <label><span>Approved CV</span><select value={pack.cvDocumentId} onChange={updatePack('cvDocumentId')} disabled={!cvDocuments.length}><option value="">{cvDocuments.length ? 'Select a private CV' : 'No private CV linked yet'}</option>{cvDocuments.map((document) => <option key={document.id} value={document.id}>{document.file_name}{document.is_default ? ' · default' : ''}</option>)}</select></label>
               <label><span>Cover note</span><textarea value={pack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>
               <label><span>Screening answers</span><textarea value={pack.screeningAnswers} onChange={updatePack('screeningAnswers')} rows="4" placeholder="Answer employer questions here, or leave blank until asked." /></label>
             </div>
@@ -155,6 +164,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
             <div className="apply-flow__draft">
               <DraftBlock label="Pack status">{saved ? 'Ready for user-approved execution' : 'Saved locally'}</DraftBlock>
               <DraftBlock label="Execution route">{capabilityLabels[capability] || capabilityLabels.manual}</DraftBlock>
+              <DraftBlock label="Approved CV">{cvDocuments.find((document) => document.id === pack.cvDocumentId)?.file_name || 'No private CV selected'}</DraftBlock>
               <DraftBlock label="Answer memory">{Object.keys(learnedAnswers).length ? 'Previously confirmed answers are available for future review.' : 'No answers have been remembered yet.'}</DraftBlock>
               <DraftBlock label="Next safe action">{capability === 'api' ? 'Confirm the in-site submission request.' : 'Keep this pack queued while the approved adapter or browser extension is built.'}</DraftBlock>
             </div>
@@ -165,7 +175,7 @@ export default function ApplyFlowPanel({ job, onClose, onSaveApplication }) {
           </>
         )}
 
-        <p className="apply-flow__guardrail">AI-assisted preparation · explicit approval · no silent submission</p>
+        <p className="apply-flow__guardrail">{session ? 'Account-synced preparation' : 'Local-first preparation'} · explicit approval · no silent submission</p>
       </div>
     </section>
   );

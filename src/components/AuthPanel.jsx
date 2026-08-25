@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, subscribeToAuth, supabase, uploadCv } from '../services/supabase';
 
-export default function AuthPanel() {
-  const [session, setSession] = useState(null);
+export default function AuthPanel({ session: suppliedSession, cvFiles: suppliedCvFiles = [], onCvFilesChange }) {
+  const [internalSession, setInternalSession] = useState(null);
+  const session = suppliedSession !== undefined ? suppliedSession : internalSession;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('signin');
-  const [cvFiles, setCvFiles] = useState([]);
+  const [internalCvFiles, setInternalCvFiles] = useState(suppliedCvFiles);
+  const cvFiles = suppliedSession !== undefined ? suppliedCvFiles : internalCvFiles;
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!supabase) return undefined;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    return subscribeToAuth(setSession);
-  }, []);
+    if (suppliedSession !== undefined || !supabase) return undefined;
+    supabase.auth.getSession().then(({ data }) => setInternalSession(data.session));
+    return subscribeToAuth(setInternalSession);
+  }, [suppliedSession]);
 
   const handleEmail = async (event) => {
     event.preventDefault();
@@ -40,13 +42,13 @@ export default function AuthPanel() {
     try {
       const uploaded = [];
       for (const file of files) uploaded.push(await uploadCv(file, session.user.id));
-      setCvFiles((current) => [...uploaded, ...current]); setStatus(`${uploaded.length} CV${uploaded.length > 1 ? 's' : ''} uploaded privately.`);
+      setInternalCvFiles((current) => [...uploaded, ...current]); onCvFilesChange?.(uploaded); setStatus(`${uploaded.length} CV${uploaded.length > 1 ? 's' : ''} uploaded privately.`);
     } catch (error) { setStatus(error.message || 'CV upload failed.'); }
     finally { setBusy(false); event.target.value = ''; }
   };
 
   if (!isSupabaseConfigured) return <div className="auth-panel"><strong>Accounts are being configured.</strong><span>The public discovery experience remains available while secure account storage is prepared.</span></div>;
-  if (session) return <div className="auth-panel"><div className="auth-panel__topline"><div><p className="results-kicker">Account connected</p><strong>{session.user.email}</strong></div><button className="secondary-action" type="button" onClick={() => signOut()}>Sign out</button></div><label className="auth-panel__file"><span>Upload private CVs</span><input type="file" accept="application/pdf,.pdf,.doc,.docx" multiple onChange={handleCvUpload} disabled={busy} /></label>{cvFiles.length > 0 && <ul className="auth-panel__files">{cvFiles.map((file) => <li key={file.path}>{file.name}</li>)}</ul>}{status && <p className="auth-panel__status">{status}</p>}</div>;
+  if (session) return <div className="auth-panel"><div className="auth-panel__topline"><div><p className="results-kicker">Account connected</p><strong>{session.user.email}</strong></div><button className="secondary-action" type="button" onClick={() => signOut()}>Sign out</button></div><label className="auth-panel__file"><span>Upload private CVs</span><input type="file" accept="application/pdf,.pdf,.doc,.docx" multiple onChange={handleCvUpload} disabled={busy} /></label>{cvFiles.length > 0 && <><p className="results-kicker">Private CVs available to ApplyFlow</p><ul className="auth-panel__files">{cvFiles.map((file) => <li key={file.path || file.storage_path}><span>{file.name || file.file_name}</span>{file.version_label && <small>{file.version_label}{file.is_default ? ' · default' : ''}</small>}</li>)}</ul></>}{status && <p className="auth-panel__status">{status}</p>}</div>;
 
   return <div className="auth-panel"><div className="auth-panel__heading"><div><p className="results-kicker">Private ApplyFlow workspace</p><h2>Sign in to sync your profile</h2></div><span className="profile-panel__status">Email + Google</span></div><p>Discovery stays public. Sign in to save profile versions, upload private CVs, sync Application Packs, and track applications across devices.</p><form className="auth-panel__form" onSubmit={handleEmail}><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" required /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength="8" required /><button className="primary-action" type="submit" disabled={busy}>{mode === 'signin' ? 'Sign in with email' : 'Create account'}</button></form><button className="secondary-action auth-panel__google" type="button" onClick={handleGoogle}>Continue with Google</button><button className="auth-panel__switch" type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>{mode === 'signin' ? 'Need an account? Create one' : 'Already have an account? Sign in'}</button>{status && <p className="auth-panel__status">{status}</p>}</div>;
 }
