@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "ingest": "node scripts/ingest.js",
+    "sync:supabase-jobs": "node scripts/sync-supabase-jobs.js",
     "test:smoke": "node scripts/smoke-test.js",
     "preview": "vite preview"
   },

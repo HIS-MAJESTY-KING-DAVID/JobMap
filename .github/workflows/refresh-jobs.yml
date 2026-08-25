@@ -32,6 +32,12 @@ jobs:
           RELIEFWEB_APPNAME: ${{ secrets.RELIEFWEB_APPNAME }}
         run: npm run ingest
 
+      - name: Synchronize active jobs to Supabase
+        env:
+          SUPABASE_URL: https://wukmngewrijgqqpmprci.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run sync:supabase-jobs
+
       - name: Commit feed changes
         run: |
           if git diff --quiet -- public/jobs.json public/ingestion-meta.json; then
