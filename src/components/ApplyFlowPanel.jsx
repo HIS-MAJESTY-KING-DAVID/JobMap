@@ -60,6 +60,8 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     const defaultCv = cvDocuments.find((document) => document.is_default) || cvDocuments[0];
     return {
       fullName: initialProfile.fullName || '',
+      email: initialProfile.email || '',
+      phone: initialProfile.phone || '',
       targetRole: initialProfile.targetRole || job?.title || '',
       coverNote: `Hello ${job?.company || 'team'} team, I am interested in the ${job?.title || 'role'} opportunity and would welcome the chance to discuss how my experience could contribute.`,
       screeningAnswers: '',
@@ -96,11 +98,19 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   }));
   const runAutoFill = () => {
     const bundle = createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: pack.cvDocumentId });
-    setPack((current) => ({ ...current, autofillBundle: bundle }));
+    const values = Object.fromEntries(bundle.fields.map(({ fieldId, value }) => [fieldId, value]));
+    setPack((current) => ({
+      ...current,
+      fullName: values.fullName || current.fullName,
+      email: values.email || current.email,
+      phone: values.phone || current.phone,
+      targetRole: values.targetRole || current.targetRole,
+      autofillBundle: bundle,
+    }));
     const safeCount = bundle.fields.length;
     const reviewCount = bundle.requiresReviewFieldIds.length;
     const blockedCount = bundle.blockedFieldIds.length;
-    setAutofillMessage(`Prepared ${safeCount} safe field${safeCount === 1 ? '' : 's'}; ${reviewCount} require review${blockedCount ? `; ${blockedCount} blocked` : ''}.`);
+    setAutofillMessage(`Applied ${safeCount} safe field${safeCount === 1 ? '' : 's'} to this pack; ${reviewCount} require review${blockedCount ? `; ${blockedCount} blocked` : ''}.`);
   };
   const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
   const savePack = (status) => {
@@ -171,6 +181,8 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             {autofillMessage && <p className="apply-flow__autofill-message" role="status">{autofillMessage}</p>}
             <div className="apply-flow__editor">
               <label><span>Your name</span><input value={pack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
+              <label><span>Email address</span><input type="email" value={pack.email} onChange={updatePack('email')} placeholder="Add your email" /></label>
+              <label><span>Phone number</span><input value={pack.phone} onChange={updatePack('phone')} placeholder="Add your phone" /></label>
               <label><span>Target role</span><input value={pack.targetRole} onChange={updatePack('targetRole')} /></label>
               <label><span>Approved CV</span><select value={pack.cvDocumentId} onChange={updatePack('cvDocumentId')} disabled={!cvDocuments.length}><option value="">{cvDocuments.length ? 'Select a private CV' : 'No private CV linked yet'}</option>{cvDocuments.map((document) => <option key={document.id} value={document.id}>{document.file_name}{document.is_default ? ' · default' : ''}</option>)}</select></label>
               <label><span>Cover note</span><textarea value={pack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>

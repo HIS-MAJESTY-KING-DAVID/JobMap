@@ -18,7 +18,7 @@ function classifyField(field) {
   if (/(attest|certify|certification|agree|terms|accurate|truthful|consent|electronic signature|signature|declare)/.test(label)) return 'legal_attestation';
   if (/(authorized|authorization|sponsor|sponsorship|visa|salary|compensation|pay|ethnicity|race|gender|sex|disab|lgbtq|veteran|criminal|conviction|work permit)/.test(label)) return 'sensitive';
   if (/(cover letter|cover note|professional summary|why .*role|why .*company|about you|message to|motivation)/.test(label)) return 'generated_draft';
-  if (/(first name|given name|last name|surname|full name|preferred name|email|e mail|phone|mobile|telephone|address|city|country|postal|zip|linkedin|portfolio|website|url|timezone|language)/.test(label)) return 'safe_profile';
+  if (/(first name|given name|last name|surname|full name|preferred name|email|e mail|phone|mobile|telephone|address|city|country|postal|zip|linkedin|portfolio|website|url|timezone|language|target role|desired role)/.test(label)) return 'safe_profile';
   if (/(resume|cv|curriculum vitae|education|school|university|degree|gpa|grade|employer|company|job title|position|experience|skill|certification|qualification|graduation)/.test(label)) return 'safe_cv';
   return 'unknown';
 }
@@ -27,9 +27,9 @@ function profileValue(field, profile) {
   const label = normalize(field.label || field.name || field.id);
   const employment = profile?.preferences?.employment || {};
   const values = [
-    [/(full name|name)/, profile?.fullName],
     [/(first name|given name)/, profile?.fullName?.split(' ')[0]],
     [/(last name|surname|family name)/, profile?.fullName?.split(' ').slice(1).join(' ')],
+    [/^(full name|name)$/, profile?.fullName],
     [/(email|e mail)/, profile?.email],
     [/(phone|mobile|telephone)/, profile?.phone],
     [/(city)/, profile?.city],
@@ -41,7 +41,7 @@ function profileValue(field, profile) {
     [/(timezone)/, profile?.timezone],
     [/(language)/, profile?.languages],
     [/(salary|compensation|pay)/, profile?.salaryPreference],
-    [/(work authorization|authorized|work permit)/, profile?.workAuthorization],
+    [/(work authorization|authorized|work permit)/, profile?.workAuthorization || (employment.authorizedToWorkUS === false && employment.authorizedToWorkCanada === false && employment.authorizedToWorkUK === false ? 'No' : '')],
     [/(sponsor|visa)/, employment.requiresVisaSponsorship === false ? 'No' : ''],
     [/(gender|sex)/, employment.gender],
     [/(ethnicity|race)/, employment.ethnicity],
@@ -86,7 +86,7 @@ export function buildAutofillSuggestions({ fields = [], profile = {}, job = null
     const { classification, policy } = classifyApplicationField(field);
     const memory = learnedValue(field, learnedAnswers);
     const source = memory ? `answer_memory.${memory.key}` : classification === 'safe_profile' ? 'profile' : classification === 'safe_cv' ? 'profile_or_cv' : classification === 'generated_draft' ? 'generated_from_verified_profile' : 'unknown';
-    const value = memory?.memory?.value || (classification === 'safe_profile' ? profileValue(field, profile) : classification === 'safe_cv' ? cvValue(field, profile) : classification === 'generated_draft' ? generatedDraft(field, profile, job) : '');
+    const value = memory?.memory?.value || ((classification === 'safe_profile' || classification === 'sensitive') ? profileValue(field, profile) : classification === 'safe_cv' ? cvValue(field, profile) : classification === 'generated_draft' ? generatedDraft(field, profile, job) : '');
     const confirmations = memory?.memory?.confirmations || 0;
     const approvedReuse = Boolean(memory?.memory?.unassisted && confirmations >= 3 && !policy.blocked);
     const hasValue = Boolean(stringValue(value));

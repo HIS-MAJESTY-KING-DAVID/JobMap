@@ -12,7 +12,12 @@ const profile = {
 };
 const suggestions = buildAutofillSuggestions({
   fields: [
+    { id: 'fullName', label: 'Full name' },
+    { id: 'firstName', label: 'First name' },
+    { id: 'lastName', label: 'Last name' },
     { id: 'email', label: 'Email address' },
+    { id: 'phone', label: 'Phone number' },
+    { id: 'targetRole', label: 'Target role' },
     { id: 'sponsor', label: 'Will you require visa sponsorship?' },
     { id: 'attest', label: 'I certify that the information is accurate' },
     { id: 'captcha', label: 'CAPTCHA' },
@@ -21,14 +26,22 @@ const suggestions = buildAutofillSuggestions({
   profile,
   learnedAnswers: {},
 });
+assert.equal(suggestions.find((item) => item.fieldId === 'fullName').value, 'Kollo David');
+assert.equal(suggestions.find((item) => item.fieldId === 'firstName').value, 'Kollo');
+assert.equal(suggestions.find((item) => item.fieldId === 'lastName').value, 'David');
+assert.equal(suggestions.find((item) => item.fieldId === 'email').value, 'hismajestykingdavid@gmail.com');
+assert.equal(suggestions.find((item) => item.fieldId === 'phone').value, '+237673147753');
+assert.equal(suggestions.find((item) => item.fieldId === 'targetRole').value, 'IT Specialist');
 assert.equal(suggestions.find((item) => item.fieldId === 'email').status, 'autofill');
 assert.equal(suggestions.find((item) => item.fieldId === 'sponsor').requiresConfirmation, true);
 assert.equal(suggestions.find((item) => item.fieldId === 'attest').blocked, true);
 assert.equal(suggestions.find((item) => item.fieldId === 'captcha').blocked, true);
 assert.equal(suggestions.find((item) => item.fieldId === 'mystery').status, 'blocked');
 const bundle = createAutofillBundle({ suggestions, job: { id: 'job-1' }, cvDocumentId: 'cv-1', origin: 'https://jobmap-ten.vercel.app' });
-assert.equal(bundle.fields.length, 1);
+assert.equal(bundle.fields.length, 6);
 assert.deepEqual(bundle.blockedFieldIds, ['attest', 'captcha', 'mystery']);
+assert.equal(bundle.fields.find((item) => item.fieldId === 'fullName').value, 'Kollo David');
+assert.equal(bundle.fields.find((item) => item.fieldId === 'targetRole').value, 'IT Specialist');
 assert.equal(bundle.origin, 'https://jobmap-ten.vercel.app');
 assert.equal(bundle.cvDocumentId, 'cv-1');
 console.log('ApplyFlow autofill smoke test passed.');

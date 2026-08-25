@@ -62,3 +62,18 @@ The ApplyFlow review screen now includes an explicit **AutoFill forms** button. 
 | Express AutoFill control | 45% |
 | Autofill classification and review | 40% |
 | Overall product | 55% |
+
+
+## Visible form write-back fix — 25 August 2026
+
+The express AutoFill action now writes safe bundle values back into the visible Application Pack controls instead of only generating metadata. Verified full name, first name/last name aliases, email, phone, and target role values are covered by regression tests. Sensitive values remain suggestions requiring confirmation, while legal and unknown fields remain blocked.
+
+| Fix area | Status |
+|---|---|
+| Full name mapping | Fixed and tested |
+| First/last-name aliases | Fixed and tested |
+| Email and phone write-back | Fixed and tested |
+| Target-role classification and write-back | Fixed and tested |
+| Sensitive/legal/unknown safeguards | Preserved and tested |
+| Express AutoFill control | 55% |
+| Autofill classification and review | 45% |
