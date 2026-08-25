@@ -22,7 +22,7 @@ const trustLabels = {
   unverified: 'Source needs review',
 };
 
-export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved }) {
+export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved, hasApplication = false }) {
 
   if (!job) return null;
 
@@ -53,7 +53,7 @@ export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved 
       </div>
 
             <div className="job-detail__actions">
-        <button className="primary-action" type="button" onClick={() => onApply(job)}>Start ApplyFlow</button>
+        <button className="primary-action" type="button" onClick={() => onApply(job)} disabled={hasApplication}>{hasApplication ? 'Already in tracker' : 'Start ApplyFlow'}</button>
         <button className={`secondary-action ${isSaved ? 'secondary-action--saved' : ''}`} type="button" onClick={() => onSave(job)}>
 
           {isSaved ? 'Saved' : 'Save opening'}

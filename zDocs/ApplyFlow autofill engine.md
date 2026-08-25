@@ -77,3 +77,18 @@ The express AutoFill action now writes safe bundle values back into the visible 
 | Sensitive/legal/unknown safeguards | Preserved and tested |
 | Express AutoFill control | 55% |
 | Autofill classification and review | 45% |
+
+
+## Application execution readiness and console diagnosis — 25 August 2026
+
+The next application-process safeguard is now active: if a job already exists in the local Application Queue, JobMap disables the second ApplyFlow launch and labels the opening `Already in tracker`. This prevents duplicate packs before direct ATS/API execution and browser-assisted execution are added.
+
+The reported console errors are not emitted by JobMap. The visible `grammarly.js`, `RenderWithStyles`, `chrome-extension://.../g2External.styles.css`, and `app messages from Iterable` messages originate from installed browser extensions, specifically Grammarly and related extension assets. No matching `console.error`, `console.warn`, Grammarly, or `chrome-extension` references exist in JobMap source. Testing with the Grammarly extension disabled for JobMap or in a clean private window is the appropriate way to isolate application-owned errors.
+
+| Application workstream | Updated progress |
+|---|---:|
+| Duplicate application protection | 70% |
+| Execution status and safe pause states | 22% |
+| Direct ATS/API execution | 10% |
+| Browser-extension execution | 12% |
+| Overall product | 56% |

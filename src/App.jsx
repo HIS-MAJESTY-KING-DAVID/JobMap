@@ -247,7 +247,7 @@ function App() {
           </>
         )}
 
-                <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} />
+                <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} hasApplication={selectedJob ? applications.some((application) => application.jobId === selectedJob.id) : false} />
 
             </section>
       <ApplyFlowPanel job={applyJob} profile={profile} cvDocuments={cvDocuments} session={session} onClose={() => setApplyJob(null)} onSaveApplication={saveCurrentApplication} />
