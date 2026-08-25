@@ -76,7 +76,10 @@ export default function Sidebar({
             <p className="brand-tagline">Cameroon, work in context.</p>
           </div>
         </div>
-                <div className="location-chip"><span className="status-dot" /> {appMode === 'remote' ? 'Remote worldwide · from Cameroon' : currentLocation.name}</div>
+                <div className="sidebar__account-row">
+          <div className="location-chip"><span className="status-dot" /> {appMode === 'remote' ? 'Remote worldwide · from Cameroon' : currentLocation.name}</div>
+          <button className="account-entry" type="button" onClick={() => onTabChange('profile')} aria-label="Open account and sign in">Account / Sign in</button>
+        </div>
         <div className="mode-switch" aria-label="Job discovery mode">
           <button className={appMode === 'local' ? 'mode-switch__button mode-switch__button--active' : 'mode-switch__button'} onClick={() => onModeChange('local')} type="button">
             <span aria-hidden="true">⌖</span> Cameroon Local
