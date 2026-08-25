@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Supabase Auth owns auth.users. Every userId below is an FK to auth.users(id),
+/// enforced in SQL because Prisma cannot own Supabase's managed auth schema.
+model Profile {
+  id                 String   @id @db.Uuid
+  fullName           String?  @map("full_name") @db.VarChar(160)
+  email              String?  @db.VarChar(320)
+  phone              String?  @db.VarChar(40)
+  targetRole         String?  @map("target_role") @db.VarChar(160)
+  skills             String?
+  languages          String?
+  timezone           String?  @db.VarChar(80)
+  workAuthorization  String?  @map("work_authorization")
+  salaryPreference   String?  @map("salary_preference") @db.VarChar(160)
+  city               String?  @db.VarChar(120)
+  country            String?  @db.VarChar(120)
+  linkedin           String?  @db.VarChar(500)
+  portfolio          String?  @db.VarChar(500)
+  education         String?
+  experience        String?
+  certifications    String?
+  gpa               Decimal? @db.Decimal(4, 2)
+  preferences       Json?
+  onboardingStatus  String   @default("started") @map("onboarding_status") @db.VarChar(40)
+  profileStrength   Int      @default(0) @map("profile_strength")
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profileVersions      ProfileVersion[]
+  cvDocuments         CvDocument[]
+  applications        Application[]
+
+  @@map("profiles")
+}
+
+model ProfileVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  label       String   @db.VarChar(120)
+  snapshot    Json
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile     Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([userId, createdAt])
+  @@map("profile_versions")
+}
+
+model CvDocument {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  profileId    String?   @map("profile_id") @db.Uuid
+  storagePath  String    @unique @map("storage_path") @db.VarChar(1024)
+  fileName     String    @map("file_name") @db.VarChar(255)
+  contentType  String    @map("content_type") @db.VarChar(120)
+  fileSize     BigInt?   @map("file_size")
+  versionLabel String?   @map("version_label") @db.VarChar(120)
+  isDefault    Boolean   @default(false) @map("is_default")
+  checksum     String?   @db.VarChar(128)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile       Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  applications  Application[]
+
+  @@index([userId, createdAt])
+  @@map("cv_documents")
+}
+
+model JobSource {
+  id              String   @id @default(uuid()) @db.Uuid
+  slug            String   @unique @db.VarChar(100)
+  name            String   @db.VarChar(160)
+  sourceType      String   @map("source_type") @db.VarChar(40)
+  applicationMode String   @map("application_mode") @db.VarChar(40)
+  baseUrl         String?  @map("base_url") @db.VarChar(500)
+  enabled         Boolean  @default(false)
+  verifiedAt      DateTime? @map("verified_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  jobs Job[]
+
+  @@map("job_sources")
+}
+
+model Job {
+  id             String    @id @default(uuid()) @db.Uuid
+  sourceId       String    @map("source_id") @db.Uuid
+  externalId     String    @map("external_id") @db.VarChar(255)
+  title          String    @db.VarChar(255)
+  company        String    @db.VarChar(255)
+  location       String?   @db.VarChar(255)
+  country        String?   @db.VarChar(120)
+  workMode       String?   @map("work_mode") @db.VarChar(40)
+  employmentType String?   @map("employment_type") @db.VarChar(80)
+  description    String?
+  applicationUrl String?   @map("application_url") @db.VarChar(1500)
+  applicationEndpoint String? @map("application_endpoint") @db.VarChar(1500)
+  eligibility    Json?
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz(6)
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  lastSeenAt     DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  rawPayload     Json?     @map("raw_payload")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  source        JobSource     @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  savedBy       SavedJob[]
+  applications  Application[]
+
+  @@unique([sourceId, externalId])
+  @@index([country, workMode, lastSeenAt])
+  @@map("jobs")
+}
+
+model SavedJob {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  jobId     String   @map("job_id") @db.Uuid
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  job  Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+model SavedSearch {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  label      String   @db.VarChar(120)
+  criteria   Json
+  alertsOn   Boolean  @default(false) @map("alerts_on")
+  lastSentAt DateTime? @map("last_sent_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+
+
+  @@index([userId, updatedAt])
+  @@map("saved_searches")
+}
+
+model Application {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  jobId            String?   @map("job_id") @db.Uuid
+  jobFingerprint   String    @map("job_fingerprint") @db.VarChar(255)
+  profileVersionId String?   @map("profile_version_id") @db.Uuid
+  cvDocumentId     String?   @map("cv_document_id") @db.Uuid
+  status           String    @default("draft") @db.VarChar(40)
+  applicationMode  String    @default("manual_fallback") @map("application_mode") @db.VarChar(40)
+  headline         String?
+  coverNote        String?   @map("cover_note")
+  screeningAnswers Json?     @map("screening_answers")
+  eligibility      Json?
+  sourceUrl        String?   @map("source_url") @db.VarChar(1500)
+  submittedAt      DateTime? @map("submitted_at") @db.Timestamptz(6)
+  withdrawnAt      DateTime? @map("withdrawn_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile        Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job            Job?           @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  profileVersion ProfileVersion? @relation(fields: [profileVersionId], references: [id], onDelete: SetNull)
+  cvDocument     CvDocument?    @relation(fields: [cvDocumentId], references: [id], onDelete: SetNull)
+  events         ApplicationEvent[]
+
+  @@unique([userId, jobFingerprint])
+  @@index([userId, status, updatedAt])
+  @@map("applications")
+}
+
+model ApplicationAnswer {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  questionKey     String    @map("question_key") @db.VarChar(180)
+  questionText    String?   @map("question_text")
+  answerValue     Json      @map("answer_value")
+  sensitivity     String    @default("sensitive") @db.VarChar(30)
+  confirmedAt     DateTime  @map("confirmed_at") @db.Timestamptz(6)
+  lastUsedAt      DateTime? @map("last_used_at") @db.Timestamptz(6)
+  useCount        Int       @default(0) @map("use_count")
+  revokedAt       DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+
+  @@unique([userId, questionKey])
+  @@map("application_answers")
+}
+
+model ApplicationEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  applicationId String   @map("application_id") @db.Uuid
+  eventType     String   @map("event_type") @db.VarChar(60)
+  actor         String   @default("user") @db.VarChar(30)
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([applicationId, createdAt])
+  @@map("application_events")
+}
+
+model ConsentRecord {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  consentType  String   @map("consent_type") @db.VarChar(80)
+  policyVersion String  @map("policy_version") @db.VarChar(40)
+  granted      Boolean
+  grantedAt    DateTime @map("granted_at") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(6)
+  metadata     Json?
+
+
+  @@index([userId, consentType, grantedAt])
+  @@map("consent_records")
+}
+
+model NotificationPreference {
+  userId             String   @id @map("user_id") @db.Uuid
+  emailEnabled       Boolean  @default(true) @map("email_enabled")
+  applicationUpdates Boolean  @default(true) @map("application_updates")
+  savedSearchAlerts  Boolean  @default(false) @map("saved_search_alerts")
+  marketingEnabled   Boolean  @default(false) @map("marketing_enabled")
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+
+  @@map("notification_preferences")
+}
+
+model UserDeletionRequest {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  requestedAt   DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  scheduledPurgeAt DateTime @map("scheduled_purge_at") @db.Timestamptz(6)
+  status        String    @default("requested") @db.VarChar(30)
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz(6)
+  cancelledAt   DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  reason        String?
+
+
+  @@index([status, scheduledPurgeAt])
+  @@map("user_deletion_requests")
+}

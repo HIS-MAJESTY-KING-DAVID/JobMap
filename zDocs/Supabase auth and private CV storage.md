@@ -26,7 +26,7 @@ Email authentication still requires production verification and recovery-email s
 
 ## Profile persistence
 
-The `public.profiles` table stores only user-owned profile fields: name, email, phone, target role, skills, languages, timezone, work authorization, salary preference, city, country, LinkedIn, portfolio, education, experience, and certifications. Row-level security restricts select, insert, and update operations to `auth.uid() = id`.
+The `public.profiles` table stores only user-owned profile fields: name, email, phone, target role, skills, languages, timezone, work authorization, salary preference, city, country, LinkedIn, portfolio, education, experience, certifications, GPA, structured preferences, onboarding status, and profile strength. Row-level security restricts select, insert, update, and delete operations to `auth.uid() = id`. The full authenticated lifecycle model is documented in [`zDocs/Database schema and RLS.md`](./Database%20schema%20and%20RLS.md), including profile versions, applications, answer memory, audit events, consent, notifications, saved discovery data, and deletion requests.
 
 The UI remains local-first. When a session exists, it loads the matching remote row and saves a snake_case database row after saving the local profile. When Supabase is unavailable, the local profile remains usable.
 
@@ -50,4 +50,4 @@ Users may request deletion. The product policy is to remove user-visible profile
 | Google auth | 20% | OAuth client entry point is present; Google provider credentials, redirect allowlist, and account-linking QA remain. |
 | Profile sync | 28% | Authenticated `profiles` read/upsert path is present with local fallback and camelCase/snake_case mapping. |
 | Private CV storage | 42% | Private bucket, user-folder policy, upload path, and metadata schema are present; staged files need account association, deletion, signed downloads, and version selection. |
-| ApplyFlow | 31% | The profile/storage foundation is now connected to the controlled application architecture; ATS execution, browser assistance, and audit events remain. |
+| ApplyFlow | 43% | Application Pack persistence, duplicate fingerprints, controlled answer memory, and application event tables are deployed with RLS; UI synchronization, ATS execution, browser assistance, and trusted audit workers remain. |

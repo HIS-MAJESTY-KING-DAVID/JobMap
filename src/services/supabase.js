@@ -28,7 +28,7 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-const profileFields = ['fullName', 'email', 'phone', 'targetRole', 'skills', 'languages', 'timezone', 'workAuthorization', 'salaryPreference', 'city', 'country', 'linkedin', 'portfolio', 'education', 'experience', 'certifications'];
+const profileFields = ['fullName', 'email', 'phone', 'targetRole', 'skills', 'languages', 'timezone', 'workAuthorization', 'salaryPreference', 'city', 'country', 'linkedin', 'portfolio', 'education', 'experience', 'certifications', 'gpa', 'preferences'];
 const profileColumn = (field) => field.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
 function profileToRow(profile, userId) {

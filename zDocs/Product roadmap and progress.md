@@ -120,3 +120,14 @@ Simplify import must remain user-initiated and should rely on documented exports
 
 [1]: https://help.simplify.jobs/articles/2140179-using-the-job-tracker "Simplify Help: Using the Job Tracker"
 [2]: https://simplify.jobs/privacy "Simplify Privacy Policy"
+
+## Database lifecycle milestone — 25 August 2026
+
+The Supabase database now includes a Prisma-compatible application model and executable migration for profiles, profile versions, private CV metadata, shared sources and jobs, saved jobs, saved searches, applications, controlled application-answer memory, application events, consent records, notification preferences, and 90-day deletion requests. RLS is enabled for all thirteen public tables. User-owned policies are scoped to `auth.uid()`, shared catalog tables are read-only to clients, and CV Storage objects are path-scoped to the authenticated user. See [`zDocs/Database schema and RLS.md`](./Database%20schema%20and%20RLS.md).
+
+| Capability | Progress | State |
+|---|---:|---|
+| Authenticated user lifecycle schema | 65% | Supabase Auth trigger, profile bootstrap, notification defaults, deletion queue, consent history, and RLS deployed. Trusted purge worker and recovery UX remain. |
+| Profile and CV persistence | 52% | GPA/preferences columns, private CV metadata, Storage path policy, and version-ready tables deployed. UI version selection, signed downloads, and account claiming remain. |
+| ApplyFlow persistence | 43% | Applications, duplicate fingerprints, Application Pack fields, answer memory, and event tables deployed. UI synchronization and direct ATS adapters remain. |
+| Privacy and authorization | 58% | Shared/user-owned boundaries, private Storage policies, and 90-day deletion schedule deployed. Formal security review and retention worker remain. |
