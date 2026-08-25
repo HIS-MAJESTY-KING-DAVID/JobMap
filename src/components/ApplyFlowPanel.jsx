@@ -43,7 +43,7 @@ function readProfile() {
 export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocuments = [], session, onClose, onSaveApplication }) {
   const [step, setStep] = useState('prepare');
   const [saved, setSaved] = useState(false);
-  const [profile] = useState(() => ({ ...readProfile(), ...(providedProfile || {}) }));
+  const profile = { ...readProfile(), ...(providedProfile || {}) };
   const [learnedAnswers, setLearnedAnswers] = useState(getLearnedApplicationAnswers);
   const [rememberAnswers, setRememberAnswers] = useState({});
   const [reuseUnassisted, setReuseUnassisted] = useState({});
@@ -69,6 +69,16 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       learnedAnswers: Object.fromEntries(learnedFields.map(({ key }) => [key, knownAnswers[key]?.value || accountAnswers[key] || ''])),
     };
   });
+
+  const defaultCv = cvDocuments.find((document) => document.is_default) || cvDocuments[0];
+  const visiblePack = {
+    ...pack,
+    fullName: pack.fullName || profile.fullName || '',
+    email: pack.email || profile.email || '',
+    phone: pack.phone || profile.phone || '',
+    targetRole: pack.targetRole || profile.targetRole || job?.title || '',
+    cvDocumentId: pack.cvDocumentId || defaultCv?.id || '',
+  };
 
   if (!job) return null;
 
@@ -97,7 +107,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     learnedAnswers: { ...current.learnedAnswers, [key]: event.target.value },
   }));
   const runAutoFill = () => {
-    const bundle = createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: pack.cvDocumentId });
+    const bundle = createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
     const values = Object.fromEntries(bundle.fields.map(({ fieldId, value }) => [fieldId, value]));
     setPack((current) => ({
       ...current,
@@ -124,12 +134,12 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     });
     setLearnedAnswers(answerMemory);
     const finalSuggestions = buildAutofillSuggestions({ fields: autofillSuggestions.map(({ fieldId, label, type }) => ({ id: fieldId, label, type })), profile, job, learnedAnswers: answerMemory, unassistedMode: true });
-    const autofillBundle = pack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: pack.cvDocumentId });
+    const autofillBundle = visiblePack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
     onSaveApplication?.({
       id: `application-${job.id}`,
       jobId: job.id,
       job,
-      pack: { ...pack, autofillBundle },
+      pack: { ...visiblePack, autofillBundle },
       autofillBundle,
       status,
       executionRoute: capability,
@@ -180,13 +190,13 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             <div className="apply-flow__express-action"><button className="primary-action" type="button" onClick={runAutoFill}>AutoFill forms</button><span>Fill only source-backed safe fields now; review-gated and blocked fields stay visible below.</span></div>
             {autofillMessage && <p className="apply-flow__autofill-message" role="status">{autofillMessage}</p>}
             <div className="apply-flow__editor">
-              <label><span>Your name</span><input value={pack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
-              <label><span>Email address</span><input type="email" value={pack.email} onChange={updatePack('email')} placeholder="Add your email" /></label>
-              <label><span>Phone number</span><input value={pack.phone} onChange={updatePack('phone')} placeholder="Add your phone" /></label>
-              <label><span>Target role</span><input value={pack.targetRole} onChange={updatePack('targetRole')} /></label>
-              <label><span>Approved CV</span><select value={pack.cvDocumentId} onChange={updatePack('cvDocumentId')} disabled={!cvDocuments.length}><option value="">{cvDocuments.length ? 'Select a private CV' : 'No private CV linked yet'}</option>{cvDocuments.map((document) => <option key={document.id} value={document.id}>{document.file_name}{document.is_default ? ' · default' : ''}</option>)}</select></label>
-              <label><span>Cover note</span><textarea value={pack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>
-              <label><span>Screening answers</span><textarea value={pack.screeningAnswers} onChange={updatePack('screeningAnswers')} rows="4" placeholder="Answer employer questions here, or leave blank until asked." /></label>
+              <label><span>Your name</span><input value={visiblePack.fullName} onChange={updatePack('fullName')} placeholder="Add your name" /></label>
+              <label><span>Email address</span><input type="email" value={visiblePack.email} onChange={updatePack('email')} placeholder="Add your email" /></label>
+              <label><span>Phone number</span><input value={visiblePack.phone} onChange={updatePack('phone')} placeholder="Add your phone" /></label>
+              <label><span>Target role</span><input value={visiblePack.targetRole} onChange={updatePack('targetRole')} /></label>
+              <label><span>Approved CV</span><select value={visiblePack.cvDocumentId} onChange={updatePack('cvDocumentId')} disabled={!cvDocuments.length}><option value="">{cvDocuments.length ? 'Select a private CV' : 'No private CV linked yet'}</option>{cvDocuments.map((document) => <option key={document.id} value={document.id}>{document.file_name}{document.is_default ? ' · default' : ''}</option>)}</select></label>
+              <label><span>Cover note</span><textarea value={visiblePack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>
+              <label><span>Screening answers</span><textarea value={visiblePack.screeningAnswers} onChange={updatePack('screeningAnswers')} rows="4" placeholder="Answer employer questions here, or leave blank until asked." /></label>
             </div>
             <div className="apply-flow__autofill">
               <div><p className="results-kicker">Source-backed autofill map</p><h3>Fill facts, pause on risk.</h3><p>Known profile and CV facts are ready for autofill. Generated, sensitive, legal, and unknown fields remain review-gated.</p></div>
@@ -197,7 +207,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
               {learnedFields.map(({ key, label, placeholder }) => (
                 <label key={key} className="apply-flow__memory-field">
                   <span>{label}{learnedAnswers[key]?.confirmations ? ` · confirmed ${learnedAnswers[key].confirmations}×` : ''}</span>
-                  <textarea value={pack.learnedAnswers[key]} onChange={updateLearnedAnswer(key)} rows="2" placeholder={learnedAnswers[key]?.value || placeholder} />
+                  <textarea value={visiblePack.learnedAnswers[key]} onChange={updateLearnedAnswer(key)} rows="2" placeholder={learnedAnswers[key]?.value || placeholder} />
                   <small><input type="checkbox" checked={Boolean(rememberAnswers[key])} onChange={toggleRemember(key)} /> Remember this answer for future review suggestions</small>
                   <small><input type="checkbox" checked={Boolean(reuseUnassisted[key])} onChange={(event) => setReuseUnassisted((current) => ({ ...current, [key]: event.target.checked }))} disabled={(learnedAnswers[key]?.confirmations || 0) < 2} /> Allow unassisted reuse after 3 confirmed uses</small>
                 </label>
@@ -217,7 +227,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
               <DraftBlock label="Pack status">{saved ? 'Ready for user-approved execution' : 'Saved locally'}</DraftBlock>
               <DraftBlock label="Execution route">{capabilityLabels[capability] || capabilityLabels.manual}</DraftBlock>
               <DraftBlock label="Approved CV">{cvDocuments.find((document) => document.id === pack.cvDocumentId)?.file_name || 'No private CV selected'}</DraftBlock>
-              <DraftBlock label="Autofill bundle">{pack.autofillBundle ? `${pack.autofillBundle.fields.length} safe fields ready; ${pack.autofillBundle.requiresReviewFieldIds.length} require review.` : 'Created when this pack is saved.'}</DraftBlock>
+              <DraftBlock label="Autofill bundle">{visiblePack.autofillBundle ? `${visiblePack.autofillBundle.fields.length} safe fields ready; ${visiblePack.autofillBundle.requiresReviewFieldIds.length} require review.` : 'Created when this pack is saved.'}</DraftBlock>
               <DraftBlock label="Answer memory">{Object.keys(learnedAnswers).length ? 'Previously confirmed answers are available for future review.' : 'No answers have been remembered yet.'}</DraftBlock>
               <DraftBlock label="Next safe action">{capability === 'api' ? 'Confirm the in-site submission request.' : 'Keep this pack queued while the approved adapter or browser extension is built.'}</DraftBlock>
             </div>
