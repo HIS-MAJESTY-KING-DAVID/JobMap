@@ -22,19 +22,18 @@ The refresh is intentionally limited to sources marked `enabled` in the source c
 
 ## Google OAuth status
 
-The Google button is correctly wired in the JobMap client, but the Supabase project currently reports:
+The Google button is correctly wired in the JobMap client. The provider is now enabled and the production callback configuration is:
 
 | Setting | Current state |
 |---|---|
-| Google provider enabled | **No** |
-| Google client ID | Not configured |
-| Google client secret | Not configured |
+| Google provider enabled | **Yes** |
+| Google client ID and secret | Configured in Supabase; never stored in the repository |
 | Supabase redirect endpoint | `https://wukmngewrijgqqpmprci.supabase.co/auth/v1/callback` |
-| JobMap site URL | Configured |
+| Production site URL | `https://jobmap-ten.vercel.app` |
+| Allowed production redirect | `https://jobmap-ten.vercel.app/**` |
+| Allowed local redirects | `http://localhost:3000/**`, `http://localhost:5173/**` |
 
-This is why clicking Google currently returns `Unsupported provider: provider is not enabled`. Enabling the provider requires creating a Google OAuth web application, placing the Supabase callback URL in the authorized redirect URI list, adding the JobMap domain to authorized JavaScript origins, and entering the client ID and client secret in Supabase Auth provider settings. Those values were not present in the available environment and were not invented or stored.
-
-Email authentication remains independent and can be used while Google OAuth is awaiting provider credentials.
+The earlier `Unsupported provider: provider is not enabled` error is resolved. The browser first visits Google for account selection and consent, then Google returns to Supabase, and Supabase redirects the authenticated session back to the JobMap origin. Email authentication remains available independently.
 
 ## References
 
