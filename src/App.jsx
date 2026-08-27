@@ -174,6 +174,15 @@ function App() {
     }
   }, [session]);
 
+  const importApplications = useCallback((importedApplications) => {
+    let nextApplications = applications;
+    importedApplications.forEach((application) => { nextApplications = saveApplication(application); });
+    setApplications(nextApplications);
+    if (session?.user?.id) {
+      Promise.all(importedApplications.map((application) => saveRemoteApplication(application, session.user.id))).catch(() => setError('Imported applications locally, but cloud sync is temporarily unavailable.'));
+    }
+  }, [applications, session]);
+
   const toggleAlerts = useCallback(async () => {
     if (alertEnabled) {
       setAlertEnabled(persistAlertsEnabled(false));
@@ -221,6 +230,7 @@ function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         applications={applications}
+        onImportApplications={importApplications}
         session={session}
         profile={profile}
         cvDocuments={cvDocuments}
@@ -256,7 +266,7 @@ function App() {
           </>
         )}
 
-                <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} hasApplication={selectedJob ? applications.some((application) => application.jobId === selectedJob.id) : false} />
+                <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} hasApplication={selectedJob ? applications.some((application) => application.jobId === selectedJob.id) : false} profile={profile} appMode={appMode} />
 
             </section>
       <ApplyFlowPanel job={applyJob} profile={profile} cvDocuments={cvDocuments} session={session} onClose={() => setApplyJob(null)} onSaveApplication={saveCurrentApplication} />

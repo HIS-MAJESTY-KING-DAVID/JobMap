@@ -530,3 +530,38 @@ button { color: inherit; }
 .application-item__actions select {
   min-height: 38px;
 }
+
+/* Wonsulting-inspired intent-first onboarding and explainable recommendations */
+.onboarding-card { margin: 18px 0; padding: 18px; background: #eff7f0; border: 1px solid #c5ddd0; border-radius: 16px; }
+.onboarding-card__topline { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.onboarding-card__topline h2 { margin: 4px 0 0; font-size: 1.35rem; }
+.onboarding-card__topline > strong { color: #d45e2c; white-space: nowrap; }
+.onboarding-goals { display: grid; gap: 8px; margin-top: 16px; }
+.onboarding-goal { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #bdd5c6; background: #fff; color: #12302d; border-radius: 10px; padding: 12px 14px; text-align: left; cursor: pointer; font-weight: 700; }
+.onboarding-goal span { color: #d45e2c; font-size: 1.2rem; }
+.onboarding-card__progress p { margin: 14px 0; line-height: 1.5; }
+.onboarding-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin: 12px 0 16px; }
+.checklist-item { color: #667875; font-size: .82rem; }
+.checklist-item--complete { color: #17634f; font-weight: 700; }
+.job-detail__recommendation { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; padding: 14px; background: #f1f7f3; border-top: 1px solid #c6ddd1; border-bottom: 1px solid #c6ddd1; }
+.job-detail__recommendation > div { display: grid; gap: 4px; }
+.job-detail__recommendation b { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: #52716b; }
+.job-detail__recommendation span, .job-detail__recommendation small { line-height: 1.4; }
+.job-detail__recommendation small { color: #667875; }
+.route-chip { display: inline-block; width: fit-content; padding: 4px 8px; border-radius: 999px; background: #d9ebe2; color: #17634f; font-size: .78rem; font-weight: 700; }
+.route-chip--manual { background: #fff0df; color: #9b4d21; }
+.route-chip--unsupported { background: #f7e5e5; color: #994244; }
+@media (max-width: 720px) {
+  .onboarding-checklist, .job-detail__recommendation { grid-template-columns: 1fr; }
+  .onboarding-card { padding: 14px; }
+}
+
+.tracker-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+.tracker-summary span { padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #f5f8f5; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 8px; line-height: 1.3; text-transform: uppercase; }
+.tracker-summary b { display: block; color: var(--ink); font-size: 16px; }
+.tracker-summary__due { border-color: #e8c5a7 !important; background: #fff7ed !important; color: #9b4d21 !important; }
+.tracker-summary__due b { color: #9b4d21; }
+.tracker-tools { display: flex; align-items: center; gap: 10px; margin: 12px 0 18px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.tracker-tools label { position: relative; flex: 0 0 auto; }
+.tracker-tools input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+@media (max-width: 560px) { .tracker-summary { grid-template-columns: 1fr 1fr; } .tracker-summary span:last-child { grid-column: span 2; } .tracker-tools { align-items: flex-start; flex-direction: column; } }

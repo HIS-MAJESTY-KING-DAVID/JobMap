@@ -62,6 +62,7 @@ export default function Sidebar({
   onTabChange,
   applications,
   onUpdateApplication,
+  onImportApplications,
   session,
   profile,
   cvDocuments,
@@ -162,7 +163,7 @@ export default function Sidebar({
         )}
       </div>
 
-            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onBack={() => onTabChange('discover')} /> : activeTab === 'profile' ? <ProfilePanel session={session} profile={profile} cvDocuments={cvDocuments} onCvDocumentsChange={onCvDocumentsChange} onBack={() => onTabChange('discover')} /> : <>
+            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onImportApplications={onImportApplications} onBack={() => onTabChange('discover')} session={session} /> : activeTab === 'profile' ? <ProfilePanel session={session} profile={profile} cvDocuments={cvDocuments} onCvDocumentsChange={onCvDocumentsChange} onBack={() => onTabChange('discover')} /> : <>
       <div className="results-header">
 
         <div>

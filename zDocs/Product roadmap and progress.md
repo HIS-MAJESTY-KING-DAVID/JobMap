@@ -161,3 +161,23 @@ The first complete autofill-policy slice is now implemented. ApplyFlow classifie
 | Browser-extension handoff | 12% | Expiring origin-bound bundle contract is ready; extension executor remains ahead. |
 | Direct ATS/API execution | 8% | Application schema supports bundle persistence; approved adapter execution remains ahead. |
 | Overall JobMap product | 54% | Updated estimate reflects account-aware ApplyFlow and the autofill policy slice. |
+
+
+## Wonsulting-inspired experience milestone — 27 August 2026
+
+JobMap now includes the first implementation slice derived from the public Wonsulting analysis. The Profile workspace has an intent-first onboarding selector for Cameroon work, worldwide remote work, application preparation, and application tracking. It also provides progressive profile completion tasks that reuse the authenticated profile and private CV metadata instead of restarting onboarding from an empty form.
+
+Job detail now exposes explainable recommendation reasons, including target-role overlap, profile-skill overlap, remote signals, Cameroon/Africa eligibility signals, timezone information, and trusted-source metadata. It also labels the application route as a direct-adapter candidate, browser-assisted candidate, manual fallback, or unclear route.
+
+The Tracker now shows total tracked applications, applied/progressing applications, and follow-ups due. It supports user-provided CSV imports without credentials and preserves imported company, position, location, status, dates, links, next actions, and notes in the local-first/application-sync flow. The account state is visible as cloud-synced when authenticated.
+
+Updated delivery estimates:
+
+| Feature area | Progress | Current state |
+|---|---:|---|
+| Intent-first onboarding | 55% | Four user goals and progressive completion checklist are implemented in Profile. |
+| Explainable recommendations | 38% | Job-level reasons and profile overlap are visible in the detail surface. |
+| Source provenance and execution labels | 55% | Source trust, eligibility, route capability, and route explanation are shown together. |
+| Tracker evidence and CSV import | 62% | Summary metrics, follow-up due count, manual lifecycle, and user-provided CSV import are implemented. |
+| Email sync boundary | 10% | Product boundary documented; no Gmail connector is enabled yet. |
+| Overall JobMap product | 60% | Wonsulting-inspired first-run, recommendation, and tracker surfaces are now present; direct execution and optional email evidence remain. |

@@ -1,3 +1,5 @@
+import { getExecutionRoute, getRecommendationReasons } from '../services/recommendations';
+
 function formatDate(value) {
   if (!value) return 'Not provided';
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
@@ -22,7 +24,9 @@ const trustLabels = {
   unverified: 'Source needs review',
 };
 
-export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved, hasApplication = false }) {
+export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved, hasApplication = false, profile = {}, appMode = 'local' }) {
+  const route = getExecutionRoute(job);
+  const reasons = getRecommendationReasons(job, profile, appMode);
 
   if (!job) return null;
 
@@ -44,6 +48,10 @@ export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved,
       </div>
 
       <p className="job-detail__description">{job.description}</p>
+      <div className="job-detail__recommendation">
+        <div><b>Why this opening</b><span>{reasons.length ? reasons.join(' · ') : 'Explore this source and decide if it fits your goals.'}</span></div>
+        <div><b>Application route</b><span className={`route-chip route-chip--${route.key}`}>{route.label}</span><small>{route.detail}</small></div>
+      </div>
             <div className="job-detail__facts">
         <span><b>Posted</b>{formatDate(job.postedAt)}</span>
         <span><b>Last verified</b>{formatDate(job.lastVerifiedAt)}</span>

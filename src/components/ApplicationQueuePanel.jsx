@@ -1,3 +1,5 @@
+import { useMemo, useState } from 'react';
+
 const statusLabels = {
   draft: 'Draft',
   ready_for_approval: 'Ready for review',
@@ -24,7 +26,34 @@ function formatFollowUp(value) {
   return `Follow up ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))}`;
 }
 
-export default function ApplicationQueuePanel({ applications, onUpdateApplication, onBack }) {
+function parseCsv(text) {
+  const rows = text.trim().split(/\r?\n/).filter(Boolean).map((row) => row.split(',').map((value) => value.trim().replace(/^"|"$/g, '')));
+  if (rows.length < 2) return [];
+  const headers = rows.shift().map((value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '_'));
+  return rows.map((row, index) => {
+    const values = Object.fromEntries(headers.map((header, column) => [header, row[column] || '']));
+    const title = values.position_title || values.job_title || values.title || 'Imported application';
+    const company = values.company_name || values.company || 'Imported employer';
+    return { id: `import-${Date.now()}-${index}`, jobId: values.job_id || `imported-${Date.now()}-${index}`, status: values.status?.toLowerCase() || 'applied', createdAt: values.applied_date || new Date().toISOString(), appliedAt: values.applied_date || null, updatedAt: new Date().toISOString(), job: { id: values.job_id || `imported-${Date.now()}-${index}`, title, company, location: values.location || 'Location not specified', applyUrl: values.url || values.apply_url || '' }, followUpAt: values.follow_up_date || null, nextAction: values.next_action || '', followUpNote: values.notes || '' };
+  });
+}
+
+export default function ApplicationQueuePanel({ applications, onUpdateApplication, onImportApplications, onBack, session }) {
+  const [importMessage, setImportMessage] = useState('');
+  const dueCount = useMemo(() => applications.filter((application) => application.followUpAt && new Date(application.followUpAt) <= new Date() && !['rejected', 'withdrawn', 'cancelled'].includes(application.status)).length, [applications]);
+  const handleImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = parseCsv(await file.text());
+      if (!imported.length) throw new Error('empty');
+      onImportApplications?.(imported);
+      setImportMessage(`${imported.length} application${imported.length === 1 ? '' : 's'} imported for review.`);
+    } catch {
+      setImportMessage('Could not read that CSV. Include Company, Position Title, Status, Location, and optional dates or links.');
+    }
+    event.target.value = '';
+  };
   return (
     <section className="application-queue" aria-label="ApplyFlow application queue">
       <div className="profile-panel__heading">
@@ -32,9 +61,12 @@ export default function ApplicationQueuePanel({ applications, onUpdateApplicatio
           <p className="results-kicker">ApplyFlow queue</p>
           <h1>Applications</h1>
         </div>
-        <span className="profile-panel__status">Local tracker</span>
+        <span className="profile-panel__status">{session ? 'Cloud-synced tracker' : 'Local tracker'}</span>
       </div>
       <p className="profile-panel__intro">Packs stay in JobMap until you choose the next action. Direct submissions and manual confirmations are recorded separately.</p>
+      <div className="tracker-summary"><span><b>{applications.length}</b> tracked</span><span><b>{applications.filter((application) => ['applied', 'screening', 'interview', 'offer', 'submitted'].includes(application.status)).length}</b> applied or progressing</span><span className={dueCount ? 'tracker-summary__due' : ''}><b>{dueCount}</b> follow-up due</span></div>
+      <div className="tracker-tools"><label className="secondary-action"><span>Import CSV</span><input type="file" accept=".csv,text/csv" onChange={handleImport} /></label><span>Import your existing tracker; JobMap previews no credentials and preserves your source notes.</span></div>
+      {importMessage && <p className="profile-panel__note">{importMessage}</p>}
       {applications.length === 0 ? (
         <div className="state-card"><strong>Your queue is empty.</strong><span>Open a job, start ApplyFlow, and save an application pack here.</span></div>
       ) : (
