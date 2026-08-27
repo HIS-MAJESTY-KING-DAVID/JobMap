@@ -1,55 +1,55 @@
 {
-  "generatedAt": "2026-08-26T20:06:47.891Z",
-  "jobs": 1409,
+  "generatedAt": "2026-08-27T09:56:26.645Z",
+  "jobs": 1472,
   "sources": [
     {
       "id": "fne-cameroon",
       "label": "FNE — Fonds National de l'Emploi",
       "status": "ok",
       "fetched": 35,
-      "durationMs": 6730
+      "durationMs": 4422
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 580,
-      "durationMs": 1021
+      "fetched": 581,
+      "durationMs": 530
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
       "status": "ok",
       "fetched": 0,
-      "durationMs": 53
+      "durationMs": 299
     },
     {
       "id": "weworkremotely-global-rss",
       "label": "We Work Remotely RSS — Global",
       "status": "ok",
-      "fetched": 90,
-      "durationMs": 510
+      "fetched": 89,
+      "durationMs": 814
     },
     {
       "id": "jobicy-api",
       "label": "Jobicy Remote Jobs API",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 90
+      "durationMs": 168
     },
     {
       "id": "remotive-api",
       "label": "Remotive Remote Jobs API",
       "status": "ok",
       "fetched": 18,
-      "durationMs": 103
+      "durationMs": 124
     },
     {
       "id": "remoteok-api",
       "label": "Remote OK public API",
       "status": "ok",
       "fetched": 99,
-      "durationMs": 515
+      "durationMs": 651
     }
   ]
 }
