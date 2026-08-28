@@ -181,3 +181,25 @@ Updated delivery estimates:
 | Tracker evidence and CSV import | 62% | Summary metrics, follow-up due count, manual lifecycle, and user-provided CSV import are implemented. |
 | Email sync boundary | 10% | Product boundary documented; no Gmail connector is enabled yet. |
 | Overall JobMap product | 60% | Wonsulting-inspired first-run, recommendation, and tracker surfaces are now present; direct execution and optional email evidence remain. |
+
+
+## Wonsulting-inspired AutoApply milestone — 28 August 2026
+
+The competitive lessons that JobMap should copy are now explicitly part of the roadmap: progressive intent-first onboarding, build-once profile reuse, source-backed autofill, explainable recommendations, capability-aware execution routes, application evidence, follow-up tracking, and optional user-consented email evidence. JobMap will adopt these patterns while preserving stronger provenance, Cameroon-to-the-world eligibility, timezone clarity, and explicit controls for sensitive and legal questions.
+
+A browser-extension proof of concept now lives under `extension/`. It accepts only a user-triggered, ten-minute ApplyFlow handoff from approved JobMap origins, rejects expired bundles, and fills only allowlisted safe fields. It pauses on sensitive, legal, CAPTCHA, login, MFA, payment, identity-verification, and unknown fields. It does not submit forms and it receives neither Supabase credentials nor private CV bytes.
+
+The ApplyFlow ready state now exposes a **Send to extension** action alongside manual fallback. The extension stores only the latest session-scoped result for user troubleshooting and exposes a clear action in its popup. Production hardening remains required before distribution: signed handoff tokens, per-domain adapters, stricter host permissions, revocation, adapter tests, and end-to-end receipts.
+
+Updated delivery estimates:
+
+| Feature area | Progress | Current state |
+|---|---:|---|
+| Progressive onboarding | 65% | Intent-first goals and profile completion checklist are implemented. |
+| Explainable recommendations | 45% | Profile overlap, remote signals, eligibility, timezone, and source trust reasons are visible. |
+| Source-backed autofill | 100% | Safe profile/CV mapping, review states, learning, and manual trigger are implemented. |
+| Browser-extension handoff | 35% | Manifest V3 proof of concept, origin filtering, allowlisted safe-field filling, popup status, and session clearing are implemented. |
+| Direct ATS/API execution | 15% | Capability labels and bundle contract exist; employer-specific submission adapters remain. |
+| Application evidence and follow-up | 70% | Applied confirmation, lifecycle statuses, follow-up dates, notes, tracker metrics, and CSV import are implemented. |
+| Optional email evidence sync | 10% | Product boundary documented; no Gmail connector is enabled. |
+| Overall JobMap product | 64% | Preparation, explainability, onboarding, tracking, and browser handoff now form a coherent vertical slice; direct execution and production extension hardening remain. |
