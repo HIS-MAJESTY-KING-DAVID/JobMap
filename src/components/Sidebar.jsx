@@ -115,6 +115,7 @@ export default function Sidebar({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search title, company, or skill"
+            aria-label="Search jobs"
             type="search"
           />
           {query && <button aria-label="Clear search" className="clear-search" onClick={() => onQueryChange('')} type="button">×</button>}
@@ -126,14 +127,14 @@ export default function Sidebar({
 
                     <label className={appMode === 'remote' ? 'filter-disabled' : ''}>
             <span>Search area</span>
-            <select value={locationId} onChange={(event) => onLocationChange(event.target.value)} disabled={appMode === 'remote'}>
+            <select aria-label="Search area" value={locationId} onChange={(event) => onLocationChange(event.target.value)} disabled={appMode === 'remote'}>
 
               {locations.map((location) => <option key={location.id} value={location.id}>{location.name} · {location.region}</option>)}
             </select>
           </label>
           <label>
             <span>Radius</span>
-            <select value={radiusKm} onChange={(event) => onRadiusChange(Number(event.target.value))} disabled={locationId === 'all'}>
+            <select aria-label="Radius" value={radiusKm} onChange={(event) => onRadiusChange(Number(event.target.value))} disabled={locationId === 'all'}>
               <option value={0}>Any distance</option>
               <option value={10}>Within 10 km</option>
               <option value={25}>Within 25 km</option>
@@ -146,13 +147,13 @@ export default function Sidebar({
         <div className="filter-grid">
           <label>
             <span>Work mode</span>
-            <select value={workMode} onChange={(event) => onWorkModeChange(event.target.value)}>
+            <select aria-label="Work mode" value={workMode} onChange={(event) => onWorkModeChange(event.target.value)}>
               <option>All</option><option>Remote</option><option>Hybrid</option><option>On-site</option>
             </select>
           </label>
           <label>
             <span>Employment</span>
-            <select value={employmentType} onChange={(event) => onEmploymentTypeChange(event.target.value)}>
+            <select aria-label="Employment" value={employmentType} onChange={(event) => onEmploymentTypeChange(event.target.value)}>
               <option>All</option><option>Full-time</option><option>Part-time</option><option>Contract</option>
             </select>
           </label>

@@ -33,6 +33,9 @@ check(Boolean(ingestionMeta.generatedAt && ingestionMeta.sources), 'ingestion me
 check(fs.existsSync(path.join(root, 'scripts/purge-deleted-users.js')), '90-day retention worker is missing');
 check(fs.existsSync(path.join(root, '.github/workflows/purge-deleted-users.yml')), '90-day retention workflow is missing');
 check(fs.existsSync(path.join(root, '.github/workflows/quality-gate.yml')), 'CI quality-gate workflow is missing');
+check(fs.existsSync(path.join(root, '.github/workflows/zap-baseline.yml')), 'OWASP ZAP baseline workflow is missing');
+check(fs.existsSync(path.join(root, 'playwright.config.cjs')), 'Playwright production audit configuration is missing');
+check(fs.existsSync(path.join(root, 'tests/e2e/production.spec.cjs')), 'Playwright production audit suite is missing');
 check(read('src/main.jsx').includes('ErrorBoundary'), 'React error boundary is not mounted');
 check(read('src/components/ApplyFlowPanel.jsx').includes('getApplicationReadiness'), 'ApplyFlow readiness gate is not wired');
 check(read('src/services/fieldAutofill.js').includes('blocked'), 'autofill blocked-field policy is not present');

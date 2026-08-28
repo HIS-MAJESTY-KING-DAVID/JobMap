@@ -3,7 +3,7 @@ name: Purge retained user data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '43 3 * * *'
+    - cron: "43 3 * * *"
 
 permissions:
   contents: read

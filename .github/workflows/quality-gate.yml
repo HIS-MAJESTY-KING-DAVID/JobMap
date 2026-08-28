@@ -33,6 +33,10 @@ jobs:
         run: npm run test:smoke
       - name: ApplyFlow and recommendation tests
         run: node scripts/autofill-smoke-test.js && node scripts/recommendation-smoke-test.js
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser and accessibility audit
+        run: npm run test:e2e
       - name: Static syntax checks
         run: node --check scripts/ingest.js && node --check scripts/purge-deleted-users.js && node --check extension/adapters.js && node --check extension/content.js && node --check extension/background.js && node --check extension/popup.js && node --check public/sw.js
       - name: Dependency audit

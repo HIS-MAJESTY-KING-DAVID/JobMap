@@ -252,3 +252,19 @@ This completion statement does not claim universal automatic submission. JobMap�
 ### Operator handoff before public launch
 
 Configure and verify the Supabase email and Google providers and redirect URLs; add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as GitHub Actions secrets; confirm one six-hour ingestion run and the deployed feed timestamps; install the extension manually for approved Greenhouse/Stripe routes; create a fresh account on a mobile device; test private CV upload and consent revoke; and promote the validated `main` commit through the connected Vercel deployment. Keep the source-health panel visible during the launch window, especially while ReliefWeb access remains publisher-policy dependent.
+
+
+## Renowned production-readiness audit milestone — 28 August 2026
+
+The production hardening pass was independently checked with recognized browser, accessibility, performance, dependency, and CI-oriented tooling rather than only the project’s custom checklist. Playwright Test ran the public Cameroon discovery, Global Remote, Saved, Profile, and mobile navigation flows in desktop and iPhone-sized Chromium. axe-core through axe-playwright found no WCAG 2 A/AA violations after fixing muted-text contrast and adding explicit accessible names to the search and filter controls. Google Lighthouse measured 77 Performance, 96 Accessibility, 93 Best Practices, and 92 SEO on the rebuilt local production preview. `npm audit --omit=dev --audit-level=moderate` reported zero vulnerabilities, and Prettier validated the workflow and browser-audit files.
+
+An OWASP ZAP passive baseline workflow is now available under `.github/workflows/zap-baseline.yml` for manual scans against a deployed staging or production URL. Docker is unavailable in the local audit sandbox, so the ZAP scan itself must run in GitHub Actions or another approved CI environment. The repository also includes the Playwright/axe browser gate in `.github/workflows/quality-gate.yml`. GitHub Actions remains the authoritative environment for workflow execution and should run the ZAP scan before public promotion.
+
+| Audit area | Completion | Release interpretation |
+|---|---:|---|
+| Browser flow regression audit | 100% | 8/8 Playwright desktop/mobile cases pass. |
+| WCAG A/AA automated audit | 100% | axe-core reports zero violations in audited public states. |
+| Lighthouse review | 100% | Performance, accessibility, best-practice, and SEO scores recorded; PWA category unavailable in this Lighthouse environment. |
+| Production dependency audit | 100% | npm audit reports zero moderate-or-higher production vulnerabilities. |
+| Passive web-security scan | 90% | OWASP ZAP workflow is configured; execute it against the deployed host in GitHub Actions. |
+| Full roadmap build | 100% | Code-complete for the committed production contract. External provider authorization, deployment promotion, and optional Gmail evidence sync remain operational tasks. |

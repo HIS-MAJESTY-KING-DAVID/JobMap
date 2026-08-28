@@ -19,3 +19,19 @@ The browser-assisted handoff was narrowed from broad HTTPS injection to approved
 Final automated evidence: production checklist passed; ESLint passed; Vite production build passed; discovery, autofill, and recommendation smoke tests passed; Node syntax checks passed for ingestion, retention, extension, and service-worker scripts; `npm audit --omit=dev --audit-level=moderate` reported zero vulnerabilities; and `git diff --check` passed. The local production browser smoke rendered the JobMap shell, Cameroon map/feed, remote flow, Saved view, and mobile navigation. Lighthouse on the local production build measured Performance 76, Accessibility 92, Best Practices 93, and SEO 92.
 
 The remaining external release controls are configuration/operations rather than hidden code claims: verify Supabase email and Google providers plus redirect URLs, configure the GitHub secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for the retention workflow, confirm the six-hour ingestion workflow and deployed feed timestamps, perform a fresh-account mobile test, and promote the validated commit through the connected Vercel integration. Universal auto-submit, arbitrary employer scraping, CAPTCHA handling, credentials, legal attestations, and silent sensitive-answer submission remain intentionally unsupported.
+
+## Renowned production-readiness tool pass
+
+The release was audited with the following recognized tools and standards:
+
+| Tool or standard | Result | Evidence or action |
+|---|---|---|
+| Playwright Test | **8/8 passed** | Desktop Chromium and iPhone-sized Chromium projects exercised public discovery, Global Remote, Saved, Profile, and mobile navigation. |
+| axe-core through axe-playwright | **Passed** | WCAG 2 A/AA checks returned no violations across the audited states. Initial contrast findings were fixed by replacing low-contrast muted tokens and adding explicit accessible names to search and filter controls. |
+| Google Lighthouse | **77 Performance, 96 Accessibility, 93 Best Practices, 92 SEO** | Run against the rebuilt local production preview. Lighthouse did not return a PWA category score in this environment; manifest and service-worker checks remain covered by the repository release gate. |
+| npm audit | **0 vulnerabilities** | Production dependency audit completed with `--omit=dev --audit-level=moderate`. |
+| Prettier | **Passed** | GitHub Actions YAML, Playwright configuration, and browser test files use valid consistent formatting. |
+| OWASP ZAP | **Workflow added** | Passive baseline scan is available through `.github/workflows/zap-baseline.yml` and is intentionally manually triggered against a deployed staging/production URL. A local Docker ZAP scan could not run because Docker is unavailable in this sandbox. |
+| actionlint | **Not available locally** | The workflow files are formatted and constrained to least-privilege permissions; GitHub Actions remains the authoritative execution environment. |
+
+The first Playwright run exposed two test-harness issues and an actual accessibility issue: the mobile project initially selected uninstalled WebKit, the Saved test expected a non-existent Back button, and low-contrast muted text failed WCAG contrast checks. The project now forces the mobile viewport through Chromium, asserts the real Saved navigation contract, darkens the affected tokens, and gives form controls explicit accessible names. The final Playwright and axe run passes on all eight desktop/mobile cases.
