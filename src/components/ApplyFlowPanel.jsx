@@ -48,6 +48,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const [rememberAnswers, setRememberAnswers] = useState({});
   const [reuseUnassisted, setReuseUnassisted] = useState({});
   const [autofillMessage, setAutofillMessage] = useState('');
+  const [extensionMessage, setExtensionMessage] = useState('');
   const [pack, setPack] = useState(() => {
     const initialProfile = { ...readProfile(), ...(providedProfile || {}) };
     const knownAnswers = getLearnedApplicationAnswers();
@@ -121,6 +122,12 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     const reviewCount = bundle.requiresReviewFieldIds.length;
     const blockedCount = bundle.blockedFieldIds.length;
     setAutofillMessage(`Applied ${safeCount} safe field${safeCount === 1 ? '' : 's'} to this pack; ${reviewCount} require review${blockedCount ? `; ${blockedCount} blocked` : ''}.`);
+  };
+  const sendToExtension = () => {
+    const bundle = visiblePack.autofillBundle;
+    if (!bundle) { setExtensionMessage('Run AutoFill and save the pack before handing fields to the extension.'); return; }
+    window.postMessage({ type: 'JOBMAP_AUTOFILL_HANDOFF', payload: { ...bundle, allowedOrigin: window.location.origin, sentAt: new Date().toISOString() } }, window.location.origin);
+    setExtensionMessage('Approved safe fields sent to the JobMap extension. Risky and unknown fields remain paused.');
   };
   const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
   const savePack = (status) => {
@@ -233,7 +240,9 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             </div>
             <div className="apply-flow__actions">
               <button className="primary-action" type="button" onClick={onClose}>Return to JobMap</button>
+              <button className="secondary-action" type="button" onClick={sendToExtension}>Send to extension</button>
               <a className="secondary-action" href={job.applyUrl} target="_blank" rel="noopener noreferrer">Continue manually ↗</a>
+              {extensionMessage && <p className="apply-flow__autofill-message" role="status">{extensionMessage}</p>}
             </div>
           </>
         )}
