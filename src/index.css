@@ -151,7 +151,7 @@ button { color: inherit; }
 .mode-callout { display: grid; gap: 4px; margin-top: 13px; padding: 12px 13px; border: 1px solid #d7e1b0; border-radius: 11px; background: #f5f8df; color: #687324; font-size: 10px; line-height: 1.4; }
 .mode-callout strong { color: var(--ink); font-size: 11px; }
 .filter-disabled { opacity: 0.58; }
-.mobile-nav { position: absolute; z-index: 40; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(5, 1fr); min-height: 58px; padding-top: 7px; padding-left: 20px; padding-right: 20px; border-top: 1px solid var(--line); background: rgba(251, 252, 250, 0.97); box-shadow: 0 -10px 28px rgba(16, 34, 37, 0.08); backdrop-filter: blur(16px); }
+.mobile-nav { position: sticky; z-index: 40; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(5, 1fr); min-height: 58px; padding-top: 7px; padding-left: 20px; padding-right: 20px; border-top: 1px solid var(--line); background: rgba(251, 252, 250, 0.97); box-shadow: 0 -10px 28px rgba(16, 34, 37, 0.08); backdrop-filter: blur(16px); }
 .mobile-nav__item { display: grid; min-width: 0; min-height: 43px; place-items: center; align-content: center; gap: 2px; border: 0; border-radius: 10px; background: transparent; color: #52645e; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.03em; text-transform: uppercase; }
 .mobile-nav__item--active { background: #edf5ee; color: var(--sea); }
 .mobile-nav__icon { font-family: 'Manrope', sans-serif; font-size: 18px; line-height: 1; }
@@ -639,3 +639,95 @@ button { color: inherit; }
 .auth-panel__consent span, .auth-panel__consent label { color: var(--muted); font-size: 9px; line-height: 1.4; }
 .auth-panel__consent label { display: flex; align-items: flex-start; gap: 6px; }
 .auth-panel__consent input[type='checkbox'] { margin-top: 1px; accent-color: var(--sea); }
+
+/* PC desktop styles for retracted map panel */
+@media (min-width: 801px) {
+  .map-panel--retracted {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .map-panel--retracted .map-canvas {
+    height: 120px !important;
+    flex: 0 0 120px !important;
+  }
+  .map-panel--retracted .map-legend {
+    display: none !important;
+  }
+  .map-panel--retracted .job-detail {
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100% - 120px) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-top: 1px solid var(--line) !important;
+    box-shadow: none !important;
+    background: var(--panel) !important;
+    backdrop-filter: none !important;
+    overflow-y: auto !important;
+  }
+  .map-panel--retracted .remote-context {
+    height: calc(100% - 120px) !important;
+    min-height: 0 !important;
+  }
+}
+
+/* Mobile responsive styles for retracted map panel */
+@media (max-width: 800px) {
+  .map-panel--retracted {
+    flex: 0 0 54px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+  }
+  .map-panel--retracted .map-canvas,
+  .map-panel--retracted .map-legend {
+    display: none !important;
+  }
+}
+
+/* Retract toggle button style */
+.map-toggle-action {
+  margin-left: auto;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #bfd4ca;
+  border-radius: 6px;
+  background: #edf5ee;
+  color: var(--sea);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: 160ms ease;
+}
+.map-toggle-action:hover {
+  border-color: var(--sea);
+  background: #e2f0e6;
+}
+
+/* Placeholder for retracted map view on PC when no job is selected */
+.map-panel__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 40px 20px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--panel);
+}
+.map-panel__placeholder strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ink);
+  font-size: 14px;
+}
+.map-panel__placeholder span {
+  font-size: 11px;
+}

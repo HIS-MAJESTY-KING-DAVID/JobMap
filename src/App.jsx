@@ -54,6 +54,7 @@ function App() {
   const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
 
   const [alertEnabled, setAlertEnabled] = useState(() => getAlertsEnabled());
+  const [mapRetracted, setMapRetracted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [ingestionMeta, setIngestionMeta] = useState(null);
@@ -273,6 +274,7 @@ function App() {
           setAppMode(nextMode);
           setActiveTab(nextMode === 'remote' ? 'swipe' : 'discover');
           setSelectedJobId(null);
+          setMapRetracted(false);
         }}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -292,14 +294,23 @@ function App() {
           }
         }}
       />
-      <section className={`map-panel ${appMode === 'remote' ? 'map-panel--remote' : ''}`}>
+      <section className={`map-panel ${appMode === 'remote' ? 'map-panel--remote' : ''} ${mapRetracted ? 'map-panel--retracted' : ''}`}>
 
         <div className="map-panel__caption">
                     <span className="caption-pill">{filteredJobs.length} {appMode === 'remote' ? 'remote matches' : 'mapped openings'}</span>
           <OfflineStatus />
           <InstallPrompt />
           <span className="caption-copy">{appMode === 'remote' ? 'Cameroon to the world · check eligibility before you apply.' : `${selectedLocation.name} · explore by place, then open the source listing.`}</span>
-
+          {appMode === 'local' && (
+            <button
+              className="map-toggle-action"
+              onClick={() => setMapRetracted(!mapRetracted)}
+              type="button"
+              aria-label={mapRetracted ? 'Expand Map' : 'Collapse Map'}
+            >
+              {mapRetracted ? 'Expand Map ⌄' : 'Collapse Map ⌃'}
+            </button>
+          )}
         </div>
                 {appMode === 'remote' ? (
           <div className="remote-context" aria-label="Global remote context">
@@ -312,8 +323,15 @@ function App() {
         ) : (
           <>
             <Suspense fallback={<div className="map-loading" role="status">Loading map…</div>}><MapContainer jobs={filteredJobs} selectedJobId={activeSelectedJobId} onSelectJob={selectJob} mapCenter={selectedLocation} /></Suspense>
-            <div className="map-legend"><span className="legend-marker" /> Job opening</div>
+            {!mapRetracted && <div className="map-legend"><span className="legend-marker" /> Job opening</div>}
           </>
+        )}
+
+        {mapRetracted && !selectedJob && appMode === 'local' && (
+          <div className="map-panel__placeholder">
+            <strong>No job selected</strong>
+            <span>Select an opening from the list to view details.</span>
+          </div>
         )}
 
                 <JobDetailPanel job={selectedJob} onClose={() => setSelectedJobId(null)} onSave={saveCurrentJob} onApply={setApplyJob} isSaved={selectedJob ? savedJobIds.includes(selectedJob.id) : false} hasApplication={selectedJob ? applications.some((application) => application.jobId === selectedJob.id) : false} profile={profile} appMode={appMode} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getLearnedApplicationAnswers, rememberApplicationAnswer } from '../services/applicationAnswers.js';
 import { buildAutofillSuggestions, createAutofillBundle } from '../services/fieldAutofill.js';
 import { getApplicationReadiness } from '../services/recommendations.js';
@@ -43,6 +43,13 @@ function readProfile() {
 
 export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocuments = [], session, onClose, onSaveApplication }) {
   const [step, setStep] = useState('prepare');
+  const sheetRef = useRef(null);
+
+  useEffect(() => {
+    if (sheetRef.current) {
+      sheetRef.current.scrollTop = 0;
+    }
+  }, [step]);
   const [saved, setSaved] = useState(false);
   const profile = { ...readProfile(), ...(providedProfile || {}) };
   const [learnedAnswers, setLearnedAnswers] = useState(getLearnedApplicationAnswers);
@@ -181,7 +188,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   return (
     <section className="apply-flow" role="dialog" aria-modal="true" aria-label="ApplyFlow application review">
       <div className="apply-flow__backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="apply-flow__sheet">
+      <div className="apply-flow__sheet" ref={sheetRef}>
         <div className="apply-flow__topline">
           <div>
             <span className="apply-flow__eyebrow">ApplyFlow · {step === 'prepare' ? '01' : step === 'review' ? '02' : '03'} / 03</span>

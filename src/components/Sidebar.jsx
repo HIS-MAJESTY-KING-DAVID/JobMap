@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ApplicationQueuePanel from './ApplicationQueuePanel';
 import ProfilePanel from './ProfilePanel';
 import SourceHealthPanel from './SourceHealthPanel';
@@ -82,8 +82,16 @@ export default function Sidebar({
   const swipeJob = jobs[safeSwipeIndex];
   const visibleJobs = activeTab === 'saved' ? savedJobs : jobs;
 
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    if (sidebarRef.current) {
+      sidebarRef.current.scrollTop = 0;
+    }
+  }, [activeTab, appMode]);
+
   return (
-    <aside className="sidebar" aria-label="Job search panel">
+    <aside className="sidebar" ref={sidebarRef} aria-label="Job search panel">
       <div className="sidebar__header">
         <div className="brand-row">
           <div className="brand-mark" aria-hidden="true">J</div>

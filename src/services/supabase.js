@@ -186,7 +186,7 @@ function rowToApplication(row) {
     pack,
     autofillBundle: row.autofill_bundle || null,
     events: (row.events || []).map((event) => ({ id: event.id, type: event.event_type, createdAt: event.created_at, metadata: event.metadata || {} })),
-    job: { id: linkedJob.id || row.job_id || row.job_fingerprint, title: linkedJob.title || row.job_title || 'Saved application', company: linkedJob.company || row.company || 'Employer', location: linkedJob.location || row.location || 'Location not specified', applyUrl: linkedJob.application_url || row.source_url || '', sourceUrl: linkedJob.application_url || row.source_url || '', remoteEligibility: eligibility.remoteEligibility, eligibleCountries: eligibility.eligibleCountries || [], source: row.source?.name || 'JobMap source' },
+    job: { id: linkedJob.id || row.job_id || row.job_fingerprint, title: linkedJob.title || row.job_title || 'Saved application', company: linkedJob.company || row.company || 'Employer', location: linkedJob.location || row.location || 'Location not specified', applyUrl: linkedJob.application_url || row.source_url || '', sourceUrl: linkedJob.application_url || row.source_url || '', remoteEligibility: eligibility.remoteEligibility, eligibleCountries: eligibility.eligibleCountries || [], source: linkedJob.source?.name || 'JobMap source' },
   };
 }
 
@@ -214,7 +214,7 @@ export async function toggleRemoteSavedJob(job, userId, shouldSave) {
 
 export async function listRemoteApplications(userId) {
   if (!supabase || !userId) return [];
-  const { data, error } = await supabase.from('applications').select('*, job:jobs(*), source:job_sources(*), events:application_events(*)').eq('user_id', userId).order('updated_at', { ascending: false });
+  const { data, error } = await supabase.from('applications').select('*, job:jobs(*, source:job_sources(*)), events:application_events(*)').eq('user_id', userId).order('updated_at', { ascending: false });
   if (error) throw error;
   return (data || []).map(rowToApplication);
 }
