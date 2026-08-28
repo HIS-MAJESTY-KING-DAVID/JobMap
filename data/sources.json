@@ -103,6 +103,20 @@
       "notes": "Follow-link to the canonical Remote OK job URL and mention Remote OK as the source."
     },
     {
+      "id": "hackernews-jobs",
+      "label": "Hacker News Jobs",
+      "type": "hackernews",
+      "enabled": true,
+      "url": "https://hnrss.org/jobs",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public",
+      "sourceTrust": "public-feed",
+      "owner": "Hacker News",
+      "notes": "Hacker News job postings via hnrss.org. Parse company and role from listing titles."
+    },
+    {
       "id": "lever-cameroon-template",
       "label": "Lever employer board — configure site",
       "type": "lever",

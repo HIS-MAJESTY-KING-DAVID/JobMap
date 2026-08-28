@@ -45,17 +45,18 @@ function slugify(value = '') {
 }
 
 function cleanText(value = '') {
-  return String(value)
+  let str = String(value);
+  str = str.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1');
+  return str
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
-        .replace(/&quot;/gi, '"')
+    .replace(/&quot;/gi, '"')
     .replace(/&apos;/gi, "'")
     .replace(/&#39;|&#x27;/gi, "'")
     .replace(/\s+/g, ' ')
-
     .trim();
 }
 
@@ -398,6 +399,44 @@ function fetchRss(source) {
   });
 }
 
+function fetchHackerNews(source) {
+  return fetchText(source.url).then((xml) => {
+    const entries = xml.match(/<(item|entry)(?:\s[^>]*)?>[\s\S]*?<\/(item|entry)>/gi) || [];
+    return entries.map((entry) => {
+      const rawTitle = firstText(entry, 'title');
+      let company = source.company || 'Hacker News Startup';
+      let title = rawTitle;
+
+      const match = rawTitle.match(/^([\s\S]+?)\s+(?:[iI]s\s+)?[hH]iring(?:\s*–\s*|\s*-\s*|\s+)?([\s\S]*)$/);
+      if (match) {
+        company = match[1].trim();
+        let role = match[2].trim();
+        if (role) {
+          role = role.replace(/^(?:a|an|the)\s+/i, '');
+          role = role.charAt(0).toUpperCase() + role.slice(1);
+          title = role;
+        } else {
+          title = 'Software Engineer / Various Roles';
+        }
+      }
+
+      const urlMatch = entry.match(/<(?:link|guid)(?:\s[^>]*)?>([\s\S]*?)<\//i);
+      const link = urlMatch ? cleanText(urlMatch[1]) : '#';
+
+      return {
+        externalId: firstText(entry, 'guid') || firstText(entry, 'id') || link,
+        title,
+        company,
+        location: firstText(entry, 'location') || source.defaultLocation,
+        description: firstText(entry, 'description') || firstText(entry, 'summary') || firstText(entry, 'content'),
+        url: link,
+        applyUrl: link,
+        postedAt: firstText(entry, 'pubDate') || firstText(entry, 'published') || firstText(entry, 'updated'),
+      };
+    });
+  });
+}
+
 function parseFneCards(html, source) {
   const cards = html.split(/<div class="offre-card h-100">/i).slice(1);
   return cards.map((card) => {
@@ -507,7 +546,9 @@ async function main() {
                     ? await fetchRemotive(source)
                     : source.type === 'remoteok'
                       ? await fetchRemoteOk(source)
-                      : await fetchRss(source);
+                      : source.type === 'hackernews'
+                        ? await fetchHackerNews(source)
+                        : await fetchRss(source);
 
       const normalized = rawJobs.map((job) => normalizeJob(job, source));
       normalized.forEach((job) => allJobs.set(dedupeKey(job), job));
