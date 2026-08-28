@@ -111,6 +111,21 @@ export async function requestAccountDeletion(userId, reason = '') {
   return data;
 }
 
+export async function recordConsent(userId, consentType, granted = true) {
+  if (!supabase || !userId || !consentType) throw new Error('Sign in before saving consent.');
+  const { data, error } = await supabase.from('consent_records').insert({
+    user_id: userId,
+    consent_type: consentType,
+    policy_version: '2026-08-28',
+    granted,
+    granted_at: new Date().toISOString(),
+    revoked_at: granted ? null : new Date().toISOString(),
+    metadata: { source: 'JobMap account settings' },
+  }).select().single();
+  if (error) throw error;
+  return data;
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function applicationToRow(application, userId) {
@@ -170,6 +185,7 @@ function rowToApplication(row) {
     createdAt: row.created_at,
     pack,
     autofillBundle: row.autofill_bundle || null,
+    events: (row.events || []).map((event) => ({ id: event.id, type: event.event_type, createdAt: event.created_at, metadata: event.metadata || {} })),
     job: { id: linkedJob.id || row.job_id || row.job_fingerprint, title: linkedJob.title || row.job_title || 'Saved application', company: linkedJob.company || row.company || 'Employer', location: linkedJob.location || row.location || 'Location not specified', applyUrl: linkedJob.application_url || row.source_url || '', sourceUrl: linkedJob.application_url || row.source_url || '', remoteEligibility: eligibility.remoteEligibility, eligibleCountries: eligibility.eligibleCountries || [], source: row.source?.name || 'JobMap source' },
   };
 }
@@ -198,7 +214,7 @@ export async function toggleRemoteSavedJob(job, userId, shouldSave) {
 
 export async function listRemoteApplications(userId) {
   if (!supabase || !userId) return [];
-  const { data, error } = await supabase.from('applications').select('*, job:jobs(*), source:job_sources(*)').eq('user_id', userId).order('updated_at', { ascending: false });
+  const { data, error } = await supabase.from('applications').select('*, job:jobs(*), source:job_sources(*), events:application_events(*)').eq('user_id', userId).order('updated_at', { ascending: false });
   if (error) throw error;
   return (data || []).map(rowToApplication);
 }
@@ -207,6 +223,14 @@ export async function saveRemoteApplication(application, userId) {
   if (!supabase || !userId || !application) return null;
   const { data, error } = await supabase.from('applications').upsert(applicationToRow(application, userId), { onConflict: 'user_id,job_fingerprint' }).select().single();
   if (error) throw error;
+  const { error: eventError } = await supabase.from('application_events').insert({
+    user_id: userId,
+    application_id: data.id,
+    event_type: 'application_saved',
+    actor: 'user',
+    metadata: { status: application.status || 'draft', executionState: application.executionState || 'not_started' },
+  });
+  if (eventError) throw eventError;
   return data;
 }
 

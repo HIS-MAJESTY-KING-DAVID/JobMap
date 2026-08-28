@@ -27,6 +27,8 @@ const trustLabels = {
 
 export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved, hasApplication = false, profile = {}, appMode = 'local' }) {
   const [shareStatus, setShareStatus] = useState('');
+  if (!job) return null;
+
   const route = getExecutionRoute(job);
   const reasons = getRecommendationReasons(job, profile, appMode);
   const fit = getFitScore(job, profile, appMode);
@@ -39,8 +41,6 @@ export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved,
       else { await navigator.clipboard.writeText(url.toString()); setShareStatus('Link copied.'); }
     } catch (error) { if (error.name !== 'AbortError') setShareStatus('Copy the URL from your browser to share this opening.'); }
   };
-
-  if (!job) return null;
 
   return (
     <section className="job-detail" aria-label="Selected job details">

@@ -220,3 +220,35 @@ The safety boundary remains deliberate. The companion extension fills only allow
 ### Production-day release gate
 
 Before public promotion, configure and verify the Supabase email/Google providers and redirect URLs, confirm the six-hour ingestion workflow is green, verify the deployed `/jobs.json` and `/ingestion-meta.json` timestamps, test a fresh account on mobile, confirm private CV Storage policies, and perform one manual employer application with a user-entered receipt. Do not advertise universal automatic submission until a source-specific adapter has been independently approved and tested.
+
+
+## Final production audit and scope-completion milestone — 28 August 2026
+
+The full committed JobMap product build has now been taken through a production hardening pass. The release includes the Cameroon-to-the-world discovery journey, verified source provenance and freshness, bounded six-hour ingestion, strict remote eligibility, deterministic fit and trust explanations, intent-first onboarding, profile/CV persistence, Simplify tracker import, Application Pack readiness gating, source-backed GPA/education/experience/link autofill, explicit answer memory controls, user-confirmed receipts, cloud application-event hydration, Saved synchronization, Swipe discovery, shareable deep links, PWA install/offline behavior, source-health visibility, opt-in follow-up reminders, consent recording and revocation, account deletion requests, a trusted 90-day purge worker, a narrowed per-domain browser handoff, a recoverable runtime boundary, security headers, lazy map loading, and CI release gates.
+
+The production audit found and fixed a blank-screen crash in `JobDetailPanel` caused by nullable-job evaluation before its guard. It also removed the unused Axios dependency, added Vercel SPA/security configuration, bounded FNE and RSS ingestion behavior, narrowed extension injection away from every HTTPS site, added exact Greenhouse/Stripe adapter mappings, and added dry-run plus user-folder validation to retention purges.
+
+| Completion dimension | Status | Meaning |
+|---|---:|---|
+| Committed product build | **100%** | All features defined in the production-scope contract are implemented, guarded, documented, and covered by release checks. |
+| Production audit and automated release gate | **100%** | Checklist, lint, build, smoke tests, syntax checks, dependency audit, browser smoke, and Lighthouse review completed. |
+| Full optional integration operations | **92%** | Remaining items require external provider configuration or partner credentials: Supabase email/Google provider verification, GitHub retention secrets, Vercel promotion verification, optional Gmail evidence sync, and any employer-specific direct-submit credentials. |
+
+This completion statement does not claim universal automatic submission. JobMap’s safe production contract remains hybrid: official or partner-supported submission routes can be added only with the required external authorization; approved browser handoff remains user-triggered; sensitive, legal, credential, CAPTCHA, identity, payment, and unknown fields remain user-controlled.
+
+### Final release checklist evidence
+
+- `npm run test:production` passed.
+- `npm run lint` passed.
+- `npm run build` passed with Leaflet split into a lazy-loaded chunk.
+- Discovery, ApplyFlow autofill, and recommendation smoke tests passed.
+- Ingestion, retention, extension, service-worker, and workflow-related JavaScript syntax checks passed.
+- `npm audit --omit=dev --audit-level=moderate` reported zero vulnerabilities.
+- `git diff --check` passed.
+- Local production browser smoke confirmed the JobMap shell, map/feed, remote flow, Saved view, and mobile navigation.
+- Lighthouse on the local production build: Performance 76, Accessibility 92, Best Practices 93, SEO 92.
+- The CI quality gate and daily retention workflow are now present under `.github/workflows/`.
+
+### Operator handoff before public launch
+
+Configure and verify the Supabase email and Google providers and redirect URLs; add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as GitHub Actions secrets; confirm one six-hour ingestion run and the deployed feed timestamps; install the extension manually for approved Greenhouse/Stripe routes; create a fresh account on a mobile device; test private CV upload and consent revoke; and promote the validated `main` commit through the connected Vercel deployment. Keep the source-health panel visible during the launch window, especially while ReliefWeb access remains publisher-policy dependent.

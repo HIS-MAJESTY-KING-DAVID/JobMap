@@ -213,18 +213,39 @@ function normalizeJob(raw, source) {
 }
 
 async function fetchText(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20_000);
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'JobMap/1.0 (+https://jobmap-ten.vercel.app/; contact: jobmap-feed-bot)',
+          'Accept': 'application/rss+xml, application/atom+xml, application/json, application/xml, text/xml;q=0.9, */*;q=0.8',
+        },
+      });
+      if (response.ok) return await response.text();
+      lastError = new Error(`HTTP ${response.status}`);
+      if (response.status < 500 && response.status !== 406 && response.status !== 429) throw lastError;
+    } catch (error) {
+      lastError = error;
+      if (error.name === 'AbortError' && attempt === 2) throw new Error(`Timed out fetching ${url}`);
+    } finally {
+      clearTimeout(timer);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+  }
+  throw lastError || new Error(`Unable to fetch ${url}`);
+}
+
+async function withDeadline(promise, timeoutMs, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timed out fetching ${label}`)), timeoutMs);
+  });
   try {
-    const response = await fetch(url, { 
-      signal: controller.signal, 
-      headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': '*/*'
-      } 
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.text();
+    return await Promise.race([promise, timeout]);
   } finally {
     clearTimeout(timer);
   }
@@ -415,21 +436,25 @@ async function fetchFne(source) {
   const firstUrl = new URL(source.url);
   firstUrl.searchParams.set('par_page', source.pageSize || '12');
   firstUrl.searchParams.set('page', '1');
-  const firstHtml = await fetchText(firstUrl.toString());
-  const pageCount = Number(firstMatch(firstHtml, /Page\s+1\s*\/\s*(\d+)/i)) || 1;
+  const firstHtml = await withDeadline(fetchText(firstUrl.toString()), 15_000, firstUrl.toString());
+  const pageCount = 1;
   const pages = [firstHtml];
   for (let page = 2; page <= pageCount; page += 1) {
     const pageUrl = new URL(firstUrl);
     pageUrl.searchParams.set('page', String(page));
-    pages.push(await fetchText(pageUrl.toString()));
+    try {
+      pages.push(await withDeadline(fetchText(pageUrl.toString()), 15_000, pageUrl.toString()));
+    } catch (error) {
+      console.error(`[ingest] ${source.id} page ${page} skipped: ${error.message}`);
+    }
   }
-  const cards = pages.flatMap((html) => parseFneCards(html, source));
+  const cards = pages.flatMap((html) => parseFneCards(html, source)).slice(0, 12);
   const detailed = [];
   for (let index = 0; index < cards.length; index += 4) {
     const batch = cards.slice(index, index + 4);
     const details = await Promise.all(batch.map(async (card) => {
       try {
-        return parseFneDetail(await fetchText(card.url));
+        return parseFneDetail(await withDeadline(fetchText(card.url), 15_000, card.url));
       } catch {
         return {};
       }
@@ -466,6 +491,7 @@ async function main() {
 
   for (const source of sources.filter((item) => item.enabled)) {
     const startedAt = Date.now();
+    console.log(`[ingest] ${source.id} start`);
     try {
             const rawJobs = source.type === 'greenhouse'
         ? await fetchGreenhouse(source)
@@ -486,8 +512,10 @@ async function main() {
       const normalized = rawJobs.map((job) => normalizeJob(job, source));
       normalized.forEach((job) => allJobs.set(dedupeKey(job), job));
       sourceReports.push({ id: source.id, label: source.label, status: 'ok', fetched: normalized.length, durationMs: Date.now() - startedAt });
+      console.log(`[ingest] ${source.id} ok (${normalized.length} jobs, ${Date.now() - startedAt}ms)`);
     } catch (error) {
       sourceReports.push({ id: source.id, label: source.label, status: 'error', error: error.message, durationMs: Date.now() - startedAt });
+      console.error(`[ingest] ${source.id} error: ${error.message}`);
     }
   }
 

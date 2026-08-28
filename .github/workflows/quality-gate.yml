@@ -1,0 +1,39 @@
+name: JobMap quality gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Production checklist
+        run: npm run test:production
+      - name: Build
+        run: npm run build
+      - name: Smoke tests
+        run: npm run test:smoke
+      - name: ApplyFlow and recommendation tests
+        run: node scripts/autofill-smoke-test.js && node scripts/recommendation-smoke-test.js
+      - name: Static syntax checks
+        run: node --check scripts/ingest.js && node --check scripts/purge-deleted-users.js && node --check extension/adapters.js && node --check extension/content.js && node --check extension/background.js && node --check extension/popup.js && node --check public/sw.js
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=moderate

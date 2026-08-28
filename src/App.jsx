@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import ApplyFlowPanel from './components/ApplyFlowPanel';
 import OfflineStatus from './components/OfflineStatus';
 import InstallPrompt from './components/InstallPrompt';
 import SourceHealthPanel from './components/SourceHealthPanel';
 import JobDetailPanel from './components/JobDetailPanel';
 
-import MapContainer from './components/MapContainer';
+const MapContainer = lazy(() => import('./components/MapContainer.jsx'));
 import Sidebar from './components/Sidebar';
 import { cameroonLocations, defaultLocationId, getLocationById } from './data/locations';
 import { fetchJobs, filterJobs, getNewestDate } from './services/JobService';
@@ -311,7 +311,7 @@ function App() {
           </div>
         ) : (
           <>
-            <MapContainer jobs={filteredJobs} selectedJobId={activeSelectedJobId} onSelectJob={selectJob} mapCenter={selectedLocation} />
+            <Suspense fallback={<div className="map-loading" role="status">Loading map…</div>}><MapContainer jobs={filteredJobs} selectedJobId={activeSelectedJobId} onSelectJob={selectJob} mapCenter={selectedLocation} /></Suspense>
             <div className="map-legend"><span className="legend-marker" /> Job opening</div>
           </>
         )}

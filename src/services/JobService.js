@@ -3,7 +3,20 @@ import { distanceInKm } from './geo.js';
 
 const JOBS_URL = '/jobs.json';
 
+function applicationCapabilityFor(job, applyUrl) {
+  if (job.applicationCapability) return job.applicationCapability;
+  try {
+    const hostname = new URL(applyUrl).hostname;
+    if (hostname === 'stripe.com' && new URL(applyUrl).pathname.startsWith('/jobs/')) return 'extension';
+    if (hostname === 'boards.greenhouse.io' || hostname === 'job-boards.greenhouse.io') return 'extension';
+  } catch {
+    // A malformed source URL remains on the manual fallback route.
+  }
+  return 'manual';
+}
+
 function normalizeJob(job) {
+  const applyUrl = job.applyUrl || job.url || '#';
   return {
     ...job,
     id: String(job.id),
@@ -14,8 +27,9 @@ function normalizeJob(job) {
     region: job.region || '',
     country: job.country || 'Cameroon',
     description: job.description || 'No description supplied by the source.',
-    url: job.url || job.applyUrl || '#',
-    applyUrl: job.applyUrl || job.url || '#',
+    url: job.url || applyUrl,
+    applyUrl,
+    applicationCapability: applicationCapabilityFor(job, applyUrl),
     source: job.source || 'Unknown source',
     sourceUrl: job.sourceUrl || job.url || '#',
     postedAt: job.postedAt || null,

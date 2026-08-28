@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getCvDownloadUrl, isSupabaseConfigured, removeCv, requestAccountDeletion, setDefaultCv, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, subscribeToAuth, supabase, uploadCv } from '../services/supabase';
+import { getCvDownloadUrl, isSupabaseConfigured, recordConsent, removeCv, requestAccountDeletion, setDefaultCv, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, subscribeToAuth, supabase, uploadCv } from '../services/supabase';
 
 export default function AuthPanel({ session: suppliedSession, cvFiles: suppliedCvFiles = [], onCvFilesChange }) {
   const [internalSession, setInternalSession] = useState(null);
@@ -12,6 +12,8 @@ export default function AuthPanel({ session: suppliedSession, cvFiles: suppliedC
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [deletionRequested, setDeletionRequested] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentSaved, setConsentSaved] = useState(false);
 
   useEffect(() => {
     if (suppliedSession !== undefined || !supabase) return undefined;
@@ -49,6 +51,26 @@ export default function AuthPanel({ session: suppliedSession, cvFiles: suppliedC
     finally { setBusy(false); event.target.value = ''; }
   };
 
+  const handleConsent = async () => {
+    if (!session?.user?.id || !consentChecked || consentSaved) return;
+    setBusy(true); setStatus('Saving privacy and ApplyFlow consent…');
+    try {
+      await recordConsent(session.user.id, 'privacy_and_applyflow');
+      setConsentSaved(true); setStatus('Consent recorded.');
+    } catch (error) { setStatus(error.message || 'Consent could not be saved.'); }
+    finally { setBusy(false); }
+  };
+
+  const handleRevokeConsent = async () => {
+    if (!session?.user?.id || !consentSaved || !window.confirm('Revoke privacy and ApplyFlow consent? You can grant it again later.')) return;
+    setBusy(true); setStatus('Revoking consent…');
+    try {
+      await recordConsent(session.user.id, 'privacy_and_applyflow', false);
+      setConsentSaved(false); setConsentChecked(false); setStatus('Consent revoked.');
+    } catch (error) { setStatus(error.message || 'Consent could not be revoked.'); }
+    finally { setBusy(false); }
+  };
+
   const handleDeletionRequest = async () => {
     if (!session?.user?.id || deletionRequested || !window.confirm('Request deletion of your JobMap account and user-visible data? Retained backups and a restricted deletion record are purged after 90 days.')) return;
     setBusy(true); setStatus('Submitting deletion request…');
@@ -77,7 +99,7 @@ export default function AuthPanel({ session: suppliedSession, cvFiles: suppliedC
   };
 
   if (!isSupabaseConfigured) return <div className="auth-panel"><strong>Accounts are being configured.</strong><span>The public discovery experience remains available while secure account storage is prepared.</span></div>;
-  if (session) return <div className="auth-panel"><div className="auth-panel__topline"><div><p className="results-kicker">Account connected</p><strong>{session.user.email}</strong></div><button className="secondary-action" type="button" onClick={() => signOut()}>Sign out</button></div><label className="auth-panel__file"><span>Upload private CVs</span><input type="file" accept="application/pdf,.pdf,.doc,.docx" multiple onChange={handleCvUpload} disabled={busy} /></label>{cvFiles.length > 0 && <><p className="results-kicker">Private CVs available to ApplyFlow</p><ul className="auth-panel__files">{cvFiles.map((file) => <li key={file.path || file.storage_path}><span>{file.name || file.file_name}</span><small>{file.version_label || (file.is_default ? 'Default CV' : 'Available CV')}</small><div className="auth-panel__file-actions">{!file.is_default && <button type="button" className="auth-panel__mini-action" onClick={() => handleCvAction('default', file)} disabled={busy}>Make default</button>}<button type="button" className="auth-panel__mini-action" onClick={() => handleCvAction('download', file)} disabled={busy}>Download</button><button type="button" className="auth-panel__mini-action auth-panel__mini-action--danger" onClick={() => handleCvAction('remove', file)} disabled={busy}>Remove</button></div></li>)}</ul></>}<div className="auth-panel__danger-zone"><strong>Account lifecycle</strong><span>Deletion removes user-visible data and schedules restricted retained copies for purge after 90 days.</span><button type="button" className="auth-panel__delete" onClick={handleDeletionRequest} disabled={busy || deletionRequested}>{deletionRequested ? 'Deletion requested' : 'Request account deletion'}</button></div>{status && <p className="auth-panel__status">{status}</p>}</div>;
+  if (session) return <div className="auth-panel"><div className="auth-panel__topline"><div><p className="results-kicker">Account connected</p><strong>{session.user.email}</strong></div><button className="secondary-action" type="button" onClick={() => signOut()}>Sign out</button></div><label className="auth-panel__file"><span>Upload private CVs</span><input type="file" accept="application/pdf,.pdf,.doc,.docx" multiple onChange={handleCvUpload} disabled={busy} /></label>{cvFiles.length > 0 && <><p className="results-kicker">Private CVs available to ApplyFlow</p><ul className="auth-panel__files">{cvFiles.map((file) => <li key={file.path || file.storage_path}><span>{file.name || file.file_name}</span><small>{file.version_label || (file.is_default ? 'Default CV' : 'Available CV')}</small><div className="auth-panel__file-actions">{!file.is_default && <button type="button" className="auth-panel__mini-action" onClick={() => handleCvAction('default', file)} disabled={busy}>Make default</button>}<button type="button" className="auth-panel__mini-action" onClick={() => handleCvAction('download', file)} disabled={busy}>Download</button><button type="button" className="auth-panel__mini-action auth-panel__mini-action--danger" onClick={() => handleCvAction('remove', file)} disabled={busy}>Remove</button></div></li>)}</ul></>}<div className="auth-panel__consent"><strong>Privacy and ApplyFlow consent</strong><span>JobMap stores your profile, private CV metadata, and controlled application answers only to provide the features you request. Sensitive and legal answers remain user-controlled.</span><label><input type="checkbox" checked={consentChecked} onChange={(event) => setConsentChecked(event.target.checked)} disabled={consentSaved || busy} /> I understand and consent to this policy version.</label><button type="button" className="auth-panel__mini-action" onClick={consentSaved ? handleRevokeConsent : handleConsent} disabled={busy || (!consentSaved && !consentChecked)}>{consentSaved ? 'Revoke consent' : 'Save consent'}</button></div><div className="auth-panel__danger-zone"><strong>Account lifecycle</strong><span>Deletion removes user-visible data and schedules restricted retained copies for purge after 90 days.</span><button type="button" className="auth-panel__delete" onClick={handleDeletionRequest} disabled={busy || deletionRequested}>{deletionRequested ? 'Deletion requested' : 'Request account deletion'}</button></div>{status && <p className="auth-panel__status">{status}</p>}</div>;
 
   return <div className="auth-panel"><div className="auth-panel__heading"><div><p className="results-kicker">Private ApplyFlow workspace</p><h2>Sign in to sync your profile</h2></div><span className="profile-panel__status">Email + Google</span></div><p>Discovery stays public. Sign in to save profile versions, upload private CVs, sync Application Packs, and track applications across devices.</p><form className="auth-panel__form" onSubmit={handleEmail}><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" required /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength="8" required /><button className="primary-action" type="submit" disabled={busy}>{mode === 'signin' ? 'Sign in with email' : 'Create account'}</button></form><button className="secondary-action auth-panel__google" type="button" onClick={handleGoogle}>Continue with Google</button><button className="auth-panel__switch" type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>{mode === 'signin' ? 'Need an account? Create one' : 'Already have an account? Sign in'}</button>{status && <p className="auth-panel__status">{status}</p>}</div>;
 }

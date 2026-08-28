@@ -99,6 +99,8 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const autofillSuggestions = buildAutofillSuggestions({
     fields: [
       { id: 'fullName', label: 'Full name' },
+      { id: 'firstName', label: 'First name' },
+      { id: 'lastName', label: 'Last name' },
       { id: 'email', label: 'Email address' },
       { id: 'phone', label: 'Phone number' },
       { id: 'targetRole', label: 'Target role' },

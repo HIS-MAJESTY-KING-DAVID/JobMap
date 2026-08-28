@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "description": "Fills only user-approved, source-backed JobMap application fields.",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://jobmap-ten.vercel.app/*", "http://localhost:3000/*", "http://localhost:5173/*"],
+  "host_permissions": ["https://jobmap-ten.vercel.app/*", "http://localhost:3000/*", "http://localhost:5173/*", "https://boards.greenhouse.io/*", "https://job-boards.greenhouse.io/*", "https://stripe.com/jobs/*"],
   "action": { "default_title": "JobMap ApplyFlow Bridge", "default_popup": "popup.html" },
   "content_scripts": [{
-    "matches": ["https://jobmap-ten.vercel.app/*", "http://localhost:3000/*", "http://localhost:5173/*", "https://*/*"],
-    "js": ["content.js"],
+    "matches": ["https://boards.greenhouse.io/*", "https://job-boards.greenhouse.io/*", "https://stripe.com/jobs/*"],
+    "js": ["adapters.js", "content.js"],
     "run_at": "document_idle"
   }],
   "background": { "service_worker": "background.js", "type": "module" }

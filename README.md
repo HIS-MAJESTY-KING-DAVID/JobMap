@@ -4,9 +4,9 @@ JobMap is a **Cameroon-wide, location-aware job-discovery map**. It helps job se
 
 ## Current product scope
 
-The first release is a job-posting map, not a directory of businesses that may or may not be hiring. The interface supports All Cameroon browsing, major-city selection across the regions, radius filtering, title/company/skill/location search, work-mode and employment filters, synchronized map markers, detailed source-linked job views, saved openings, saved searches, and a browser-local “Notify me” preference.
+The first release is a job-posting map, not a directory of businesses that may or may not be hiring. The interface supports All Cameroon browsing, major-city selection across the regions, radius filtering, title/company/skill/location search, work-mode and employment filters, synchronized map markers, detailed source-linked job views, saved openings, saved searches, a global remote Swipe queue, account-based profile/CV storage, user-confirmed ApplyFlow packs, tracker receipts, source-health visibility, and an installable offline-aware PWA shell.
 
-The current published feed still contains the five curated Douala records from the original prototype until verified external sources are configured. The user experience and ingestion contract are nationwide-ready; source breadth now expands through the registry and adapter workflow described below.
+The current published feed is generated from seven enabled source adapters spanning Cameroon and global remote roles. The ingestion contract preserves provenance, freshness, expiry, and source-health state; source breadth expands through the registry and adapter workflow described below.
 
 ## Run locally
 
@@ -20,6 +20,8 @@ Open the local URL printed by Vite. The production checks are:
 ```bash
 npm run lint
 npm run build
+npm run test:smoke
+npm run test:production
 ```
 
 ## Refresh the feed locally
@@ -47,15 +49,15 @@ Potential additional source candidates are documented in [`data/source-candidate
 | RSS / Atom | `url` | Implemented; add approved local employer, NGO, university, or job-board feeds. |
 | Orange/Taleo | Feed endpoint to be verified | Candidate only; do not enable until endpoint and usage terms are confirmed. |
 
-## Saved openings, searches, and alerts
+## Accounts, saved work, and ApplyFlow
 
-Saved openings and searches are currently stored in the browser’s local storage, so the experience works without authentication or a backend. “Notify me” records a local preference and establishes the user-facing contract for alerts. The next production step is to move saved searches and alert delivery to a backend with user accounts, email or messaging delivery, and a scheduled matcher that compares new normalized jobs against saved criteria.
+Discovery remains public. Authentication is required for portable profile preferences, private CV storage, cloud-synced Saved openings, Application Packs, tracker records, and account lifecycle controls. Local-first storage remains the fallback when the network is unavailable. ApplyFlow prepares source-backed safe fields, pauses sensitive/legal/unknown fields, supports a narrowly allowlisted browser handoff for approved employer routes, and requires explicit user confirmation before a submission receipt is recorded. Browser notifications cover opt-in new-match and follow-up reminders; email evidence sync remains an optional future connector.
 
 ## Automatic updates
 
 `.github/workflows/refresh-jobs.yml` runs every six hours and can also be triggered manually. It installs dependencies, runs the ingestion script, publishes the refreshed feed and metadata, and commits only when the generated data changes. A static deployment connected to the repository can then rebuild or serve the updated nationwide feed.
 
-At larger scale, move the same adapter and normalization logic into a hosted backend with a database, source-health monitoring, retry queues, raw-record history, a review queue for uncertain locations, and user-specific alert delivery. Keep the frontend consuming the same normalized fields so the infrastructure can evolve independently.
+The scheduled workflow uses bounded retries, explicit feed headers, source-level health reports, a six-hour refresh, expiry removal, and a bounded FNE public-page fetch so one slow publisher cannot stall the entire run. A separate daily retention workflow requires a Supabase service-role secret and purges due deletion requests only after the documented 90-day window. Keep the frontend consuming the same normalized fields so the infrastructure can evolve independently.
 
 ## Data contract
 

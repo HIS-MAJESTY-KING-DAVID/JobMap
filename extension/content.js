@@ -1,11 +1,13 @@
 /* global chrome */
 
-const SAFE_FIELDS = new Set(['fullName', 'email', 'phone', 'targetRole', 'skills', 'linkedin', 'portfolio']);
+const SAFE_FIELDS = new Set(['fullName', 'firstName', 'lastName', 'email', 'phone', 'targetRole', 'skills', 'linkedin', 'portfolio']);
 const HANDOFF_TYPE = 'JOBMAP_AUTOFILL_HANDOFF';
 
 function isAllowedJobMapMessage(event) {
   if (event.source !== window || !event.data || event.data.type !== HANDOFF_TYPE) return false;
-  return event.origin === 'https://jobmap-ten.vercel.app' || event.origin === 'http://localhost:3000' || event.origin === 'http://localhost:5173';
+  const payload = event.data.payload || {};
+  const allowedOrigin = event.origin === 'https://jobmap-ten.vercel.app' || event.origin === 'http://localhost:3000' || event.origin === 'http://localhost:5173';
+  return allowedOrigin && payload.allowedOrigin === event.origin && payload.origin === event.origin && Boolean(payload.jobId) && Array.isArray(payload.fields);
 }
 
 function labelFor(element) {
@@ -26,10 +28,10 @@ function fieldKey(label) {
 }
 
 function fill(bundle) {
-  if (!bundle || !Array.isArray(bundle.fields) || Date.parse(bundle.expiresAt || 0) <= Date.now()) return { filled: 0, skipped: bundle?.requiresReviewFieldIds?.length || 0, reason: 'Bundle expired or invalid.' };
+  if (!bundle || bundle.version !== 1 || !bundle.jobId || bundle.origin !== window.location.origin || bundle.allowedOrigin !== window.location.origin || !Array.isArray(bundle.fields) || Date.parse(bundle.expiresAt || 0) <= Date.now()) return { filled: 0, skipped: bundle?.requiresReviewFieldIds?.length || 0, reason: 'Bundle expired, invalid, or not bound to this JobMap session.' };
   let filled = 0;
   document.querySelectorAll('input, textarea, select').forEach((element) => {
-    const key = fieldKey(labelFor(element));
+    const key = window.JobMapAdapters?.fieldKey(element) || fieldKey(labelFor(element));
     const approved = bundle.fields.find((field) => field.fieldId === key && SAFE_FIELDS.has(field.fieldId));
     if (!approved || !approved.value) return;
     const setter = Object.getOwnPropertyDescriptor(element.__proto__, 'value')?.set;
