@@ -80,6 +80,37 @@ export async function uploadCv(file, userId) {
   return record;
 }
 
+export async function getCvDownloadUrl(storagePath) {
+  if (!supabase || !storagePath) throw new Error('This CV is not available for download.');
+  const { data, error } = await supabase.storage.from('cv-documents').createSignedUrl(storagePath, 60);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function setDefaultCv(documentId, userId) {
+  if (!supabase || !documentId || !userId) throw new Error('Sign in before selecting a default CV.');
+  const { error: clearError } = await supabase.from('cv_documents').update({ is_default: false }).eq('user_id', userId).is('deleted_at', null);
+  if (clearError) throw clearError;
+  const { error } = await supabase.from('cv_documents').update({ is_default: true }).eq('id', documentId).eq('user_id', userId).is('deleted_at', null);
+  if (error) throw error;
+  return listCvDocuments(userId);
+}
+
+export async function removeCv(documentId, userId) {
+  if (!supabase || !documentId || !userId) throw new Error('Sign in before removing a CV.');
+  const { error } = await supabase.from('cv_documents').update({ deleted_at: new Date().toISOString(), is_default: false }).eq('id', documentId).eq('user_id', userId);
+  if (error) throw error;
+  return listCvDocuments(userId);
+}
+
+export async function requestAccountDeletion(userId, reason = '') {
+  if (!supabase || !userId) throw new Error('Sign in before requesting account deletion.');
+  const scheduledPurgeAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.from('user_deletion_requests').insert({ user_id: userId, scheduled_purge_at: scheduledPurgeAt, reason: reason || null }).select().single();
+  if (error) throw error;
+  return data;
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function applicationToRow(application, userId) {
@@ -110,6 +141,66 @@ function applicationToRow(application, userId) {
     execution_state: application.executionState || 'not_started',
     updated_at: application.updatedAt || new Date().toISOString(),
   };
+}
+
+function rowToApplication(row) {
+  const linkedJob = row.job || {};
+  const eligibility = row.eligibility || linkedJob.eligibility || {};
+  const pack = {
+    coverNote: row.cover_note || '',
+    screeningAnswers: row.screening_answers?.text || '',
+    cvDocumentId: row.cv_document_id || '',
+    autofillBundle: row.autofill_bundle || null,
+  };
+  return {
+    id: row.id || `remote-${row.job_fingerprint}`,
+    jobId: row.job_id || row.job_fingerprint,
+    jobFingerprint: row.job_fingerprint,
+    status: row.status || 'draft',
+    executionRoute: row.application_mode || 'manual_fallback',
+    appliedAt: row.applied_at,
+    submittedAt: row.submitted_at,
+    followUpAt: row.follow_up_at,
+    followUpNote: row.follow_up_note || '',
+    recruiterContact: row.recruiter_contact || '',
+    nextAction: row.next_action || '',
+    submissionReceipt: row.submission_receipt || null,
+    executionState: row.execution_state || 'not_started',
+    updatedAt: row.updated_at,
+    createdAt: row.created_at,
+    pack,
+    autofillBundle: row.autofill_bundle || null,
+    job: { id: linkedJob.id || row.job_id || row.job_fingerprint, title: linkedJob.title || row.job_title || 'Saved application', company: linkedJob.company || row.company || 'Employer', location: linkedJob.location || row.location || 'Location not specified', applyUrl: linkedJob.application_url || row.source_url || '', sourceUrl: linkedJob.application_url || row.source_url || '', remoteEligibility: eligibility.remoteEligibility, eligibleCountries: eligibility.eligibleCountries || [], source: row.source?.name || 'JobMap source' },
+  };
+}
+
+export async function listRemoteSavedJobs(userId) {
+  if (!supabase || !userId) return [];
+  const { data, error } = await supabase.from('saved_jobs').select('job_id, job:jobs(*, source:job_sources(*))').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map((row) => ({ ...row.job, applyUrl: row.job?.application_url || '', sourceUrl: row.job?.application_url || '', source: row.job?.source?.name || 'JobMap source' })).filter((job) => job.id);
+}
+
+export async function toggleRemoteSavedJob(job, userId, shouldSave) {
+  if (!supabase || !userId || !job?.applyUrl || job.applyUrl === '#') return false;
+  const { data: linkedJob, error: lookupError } = await supabase.from('jobs').select('id').eq('application_url', job.applyUrl).maybeSingle();
+  if (lookupError) throw lookupError;
+  if (!linkedJob?.id) return false;
+  if (shouldSave) {
+    const { error } = await supabase.from('saved_jobs').upsert({ user_id: userId, job_id: linkedJob.id }, { onConflict: 'user_id,job_id' });
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('saved_jobs').delete().eq('user_id', userId).eq('job_id', linkedJob.id);
+    if (error) throw error;
+  }
+  return true;
+}
+
+export async function listRemoteApplications(userId) {
+  if (!supabase || !userId) return [];
+  const { data, error } = await supabase.from('applications').select('*, job:jobs(*), source:job_sources(*)').eq('user_id', userId).order('updated_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(rowToApplication);
 }
 
 export async function saveRemoteApplication(application, userId) {

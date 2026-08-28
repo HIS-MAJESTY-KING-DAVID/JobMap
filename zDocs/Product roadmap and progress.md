@@ -1,6 +1,6 @@
 # JobMap product roadmap and progress
 
-**Last updated:** 25 August 2026  
+**Last updated:** 28 August 2026
 **Product direction:** Cameroon-first job discovery expanding to worldwide remote applications.
 
 ## Product thesis
@@ -76,31 +76,31 @@ These percentages are **product-delivery estimates**, not automated test coverag
 | Feature area | Progress | Current state | Definition of done |
 |---|---:|---|---|
 | Cameroon map, search, radius, and filters | 90% | Working vertical slice with city and radius behavior | Production UX polish, accessibility pass, and source-quality edge cases completed |
-| Source registry and ingestion pipeline | 82% | Greenhouse, RSS, ReliefWeb RSS, FNE, Jobicy, Remotive, and Remote OK adapters are present; refreshed metadata is published | Reliable scheduled runtime, retries, source-health monitoring, and documented permissions |
+| Source registry and ingestion pipeline | 88% | Greenhouse, RSS, ReliefWeb RSS, FNE, Jobicy, Remotive, and Remote OK adapters are present; six-hour refresh metadata and a visible source-health panel are published | Reliable scheduled runtime retries, source recovery, and documented permissions |
 | Credible Cameroon-wide sources | 65% | FNE and ReliefWeb RSS are activated in the current feed; institutional and employer expansion remains | Regional coverage audit, freshness checks, and publisher relationships |
 | Global remote source network | 43% | Jobicy, Remotive, Remote OK, and WWR adapters are implemented and returned live postings; Greenhouse, Lever, Ashby, and SmartRecruiters endpoint candidates are now documented | Multiple approved global remote feeds with country and timezone eligibility fields |
-| Global remote eligibility engine | 15% | Feed records now carry evidence-based worldwide/Africa/Cameroon/restricted/unclear labels and detail-panel badges | Country, timezone, contract, language, sponsorship, salary, and work-authorization logic |
-| Mobile-first responsive UI | 65% | Local/Remote mode controls, mobile spacing, touch-sized cards, visible bottom section navigation, and a unified scrollable sidebar are implemented across desktop and mobile | Mobile navigation, thumb actions, responsive cards, keyboard/accessibility, and performance pass |
+| Global remote eligibility engine | 72% | Evidence-based labels, detail-panel explanations, a strict Cameroon-eligible-only filter, and ApplyFlow approval gating are implemented | Broader country, timezone, contract, language, sponsorship, salary, and work-authorization evidence |
+| Mobile-first responsive UI | 78% | Touch-sized cards, Saved/Swipe/Tracker/Profile navigation, scrollable sidebar, compact controls, and share actions are implemented | Final accessibility, performance, and device QA pass |
 
-| PWA installation and offline shell | 35% | Manifest, icon, service worker, app-shell caching, and network-first feed caching are implemented | Manifest, icons, service worker, caching strategy, offline saved state, and install QA |
+| PWA installation and offline shell | 72% | Manifest, icon, versioned service worker, network-first feeds, stale-while-revalidate assets, offline fallback, and in-app install prompt are implemented | Offline saved-state QA, update UX, and device install verification |
 | Email sign-in | 25% | Supabase client wiring and sign-in/sign-up UI are implemented; provider email templates and production verification settings remain | Verified email auth, recovery, session security, consent, and account settings |
 | Google sign-in | 20% | Supabase OAuth client wiring and Google entry point are implemented; Google provider credentials and redirect configuration remain | Secure OAuth flow, account linking, consent, and unlink/recovery behavior |
-| User profile and preferences | 28% | Local-first profile now loads and saves against the authenticated Supabase `profiles` table when a session exists, while retaining local fallback | Persistent authenticated profile, profile versioning, and cross-device sync |
+| User profile and preferences | 68% | Local-first profile sync, intent onboarding, progressive completion, eligibility inputs, and GPA capture are implemented | Profile versions, richer preference editing, and final cross-device QA |
 
-| CV/document storage | 42% | Private `cv-documents` Supabase bucket, user-folder RLS policy, upload control, and `cv_documents` metadata table are implemented; deletion, signed downloads, and CV selection remain | Secure upload, private storage, metadata, versioning, deletion, and document selection |
-| Simplify tracker CSV import | 0% | Import design defined from official CSV documentation | Mapping preview, validation, deduplication, status/date/link import, and confirmation |
+| CV/document storage | 78% | Private bucket/RLS, metadata, upload, default CV selection, signed download, and soft removal are implemented | Full version labels, account-claiming QA, and trusted retention worker |
+| Simplify tracker CSV import | 78% | User-provided CSV mapping preview, validation, deduplication, status/date/link import, and confirmation are implemented | Broader column compatibility and final import QA |
 | Simplify profile/resume import | 22% | User-provided CSV, JSON, TXT, Markdown, and pasted profile text are parsed with field-level preview and confirmation; the private CV bucket now provides the first secure storage path | PDF/DOCX/text import, reviewable extraction, field mapping, and approved profile version |
-| Swipe discovery queue | 12% | Global Remote entry point, remote feed, and first ApplyFlow launch action are implemented; swipe gestures and queue ranking are not yet built | Swipe actions, queue ranking, undo, saved state, and explainable recommendations |
-| Fit and trust scoring | 0% | Concept defined | Explainable fit, source trust, remote eligibility badges, and no opaque exclusion |
-| Application Pack generation | 28% | Users can edit name, target role, cover note, screening answers, and explicitly remembered sensitive-answer suggestions inside JobMap, then save an approved local pack; versioned CV and tailored generation are next | Versioned CV, cover message, screening answers, review, and audit record |
+| Swipe discovery queue | 62% | User-controlled remote queue, pass/save/ApplyFlow actions, remaining-count state, and mobile thumb controls are implemented | Undo, ranking refinement, and gesture QA |
+| Fit and trust scoring | 72% | Deterministic skill/role overlap, remote signals, source trust, eligibility explanations, and regression tests are implemented | Broader multilingual/semantic matching and calibration review |
+| Application Pack generation | 78% | Editable pack, selected private CV, generated drafts, GPA/education/experience/link autofill, review states, readiness gate, and audit timeline are implemented | Versioned profile selection and richer tailored generation |
 
-| Hybrid assisted application | 10% | Source capability registry distinguishes direct/API candidates from manual fallback; user-confirmed answer memory now supports repeat preparation without silent sensitive-answer submission | Supported APIs plus guided browser handoff, final confirmation, failure recovery, and logs |
-| Application tracker | 18% | ApplyFlow packs are stored in a local queue with ready-for-review, needs-input, cancelled, and manual-fallback states | Applied/interview/offer/follow-up states, events, reminders, and cross-device sync |
+| Hybrid assisted application | 48% | Capability labels, strict eligibility gate, safe browser handoff, extension result reporting, user-confirmed receipts, and manual fallback are implemented | Signed tokens, per-domain adapters, direct ATS execution, and end-to-end submission recovery |
+| Application tracker | 78% | Applied/interview/offer/follow-up lifecycle, user-confirmed receipts, audit timeline, CSV import, cloud hydration, and due reminders are implemented | Server-side event sync, delivery logs, and final recovery QA |
 
-| Email and push notifications | 5% | Local notification preference exists | Consent, unsubscribe, matching jobs, delivery logs, and notification controls |
-| Global analytics and quality dashboard | 0% | Not implemented | Source health, freshness, application funnel, and privacy-safe product metrics |
+| Email and push notifications | 32% | Opt-in browser notifications for new matches and due follow-ups with local deduplication are implemented | Gmail evidence sync, email delivery, unsubscribe controls, and server-side logs |
+| Global analytics and quality dashboard | 58% | Published ingestion freshness, job counts, source status, fetched counts, and error visibility are shown in the expandable Source health panel | Application funnel metrics and privacy-safe server-side analytics |
 
-**Estimated overall product progress: 52%.** This is weighted toward the existing Cameroon discovery foundation, Local/Remote/PWA foundation, live global feeds, the visible section navigation, the in-site editable ApplyFlow queue, and the first user-confirmed Simplify profile bridge; authentication, private document storage, direct submission adapters, deep eligibility, and controlled automation layers remain ahead.
+**Historical baseline: 52%.** This was the estimate before the authenticated ApplyFlow, recommendation, tracker, and extension milestones documented below.
 
 ## Roadmap
 
@@ -202,4 +202,21 @@ Updated delivery estimates:
 | Direct ATS/API execution | 15% | Capability labels and bundle contract exist; employer-specific submission adapters remain. |
 | Application evidence and follow-up | 70% | Applied confirmation, lifecycle statuses, follow-up dates, notes, tracker metrics, and CSV import are implemented. |
 | Optional email evidence sync | 10% | Product boundary documented; no Gmail connector is enabled. |
-| Overall JobMap product | 64% | Preparation, explainability, onboarding, tracking, and browser handoff now form a coherent vertical slice; direct execution and production extension hardening remain. |
+| Overall JobMap product | 78% | The core Cameroon-to-the-world discovery, preparation, eligibility, tracking, privacy, and mobile PWA journey is production-shaped; direct ATS submission, Gmail evidence, trusted purge workers, and full extension hardening remain. |
+
+
+## Production-scope hardening milestone — 28 August 2026
+
+The one-day production scope now covers a complete Cameroon-to-the-world user journey: public discovery, remote eligibility filtering, explainable fit and source trust signals, intent-first onboarding, profile reuse, GPA/education/experience/link autofill, private CV lifecycle controls, Application Pack readiness gating, user-confirmed submission evidence, tracker audit activity, cloud hydration, Saved synchronization where a canonical database job exists, opt-in follow-up reminders, shareable job deep links, source-health visibility, and installable/offline PWA behavior.
+
+The safety boundary remains deliberate. The companion extension fills only allowlisted safe fields after an explicit user action, reports the actual fill result back into ApplyFlow, and never submits forms. CAPTCHA, credentials, MFA, payment, identity verification, legal attestations, unknown questions, work authorization, sponsorship, salary, and demographic answers remain paused for the user. Remote roles without explicit Cameroon/Africa/worldwide eligibility are hidden when the strict filter is enabled and cannot be approved through ApplyFlow.
+
+| Production capability | Progress | Evidence in repository |
+|---|---:|---|
+| Production MVP readiness | 85% | Core discovery-to-preparation-to-tracking path, strict eligibility gate, source health, mobile navigation, PWA install/offline shell, and release validation are shipped. |
+| Full product roadmap | 78% | Remaining scope is concentrated in direct ATS submissions, signed/per-domain extension hardening, Gmail evidence sync, trusted purge workers, deeper semantic matching, and final device/provider QA. |
+| Release validation | 100% | ESLint, Vite build, autofill smoke test, discovery smoke test, recommendation smoke test, extension syntax checks, service-worker syntax checks, and `git diff --check` pass. |
+
+### Production-day release gate
+
+Before public promotion, configure and verify the Supabase email/Google providers and redirect URLs, confirm the six-hour ingestion workflow is green, verify the deployed `/jobs.json` and `/ingestion-meta.json` timestamps, test a fresh account on mobile, confirm private CV Storage policies, and perform one manual employer application with a user-entered receipt. Do not advertise universal automatic submission until a source-specific adapter has been independently approved and tested.

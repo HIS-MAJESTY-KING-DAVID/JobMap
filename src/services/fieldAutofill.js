@@ -55,7 +55,8 @@ function profileValue(field, profile) {
 function cvValue(field, profile) {
   const label = normalize(field.label || field.name || field.id);
   if (/(skill)/.test(label)) return stringValue(profile?.skills);
-  if (/(education|school|university|degree|gpa|graduation)/.test(label)) return stringValue(profile?.education);
+  if (/(gpa)/.test(label)) return stringValue(profile?.gpa);
+  if (/(education|school|university|degree|graduation)/.test(label)) return stringValue([profile?.education, profile?.gpa ? `GPA: ${profile.gpa}` : ''].filter(Boolean).join('\n'));
   if (/(employer|company|job title|position|experience|qualification|certification)/.test(label)) return stringValue([profile?.experience, profile?.certifications].filter(Boolean).join('\n'));
   return '';
 }

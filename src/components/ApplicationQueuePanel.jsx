@@ -40,7 +40,19 @@ function parseCsv(text) {
 
 export default function ApplicationQueuePanel({ applications, onUpdateApplication, onImportApplications, onBack, session }) {
   const [importMessage, setImportMessage] = useState('');
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [receiptReference, setReceiptReference] = useState('');
   const dueCount = useMemo(() => applications.filter((application) => application.followUpAt && new Date(application.followUpAt) <= new Date() && !['rejected', 'withdrawn', 'cancelled'].includes(application.status)).length, [applications]);
+  const beginConfirmation = (application) => {
+    setConfirmingId(application.id);
+    setReceiptUrl(application.submissionReceipt?.url || application.job?.applyUrl || '');
+    setReceiptReference(application.submissionReceipt?.reference || '');
+  };
+  const confirmSubmission = (application) => {
+    onUpdateApplication(application.id, { status: 'applied', appliedAt: application.appliedAt || new Date().toISOString(), submittedAt: new Date().toISOString(), executionState: 'manual_confirmed', submissionReceipt: { url: receiptUrl.trim() || null, reference: receiptReference.trim() || null, confirmedBy: 'user', confirmedAt: new Date().toISOString() } });
+    setConfirmingId(null); setReceiptUrl(''); setReceiptReference('');
+  };
   const handleImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -83,9 +95,20 @@ export default function ApplicationQueuePanel({ applications, onUpdateApplicatio
                 <h2>{application.job?.title || application.pack?.targetRole || 'Untitled application'}</h2>
                 <p>{application.job?.location || 'Location not specified'} · Updated {formatDate(application.updatedAt || application.createdAt)}</p>
                 <p className="application-item__followup">{formatFollowUp(application.followUpAt)}{application.nextAction ? ` · ${application.nextAction}` : ''}</p>
+                {confirmingId === application.id && <div className="application-item__confirmation"><strong>Confirm only after the employer form accepts your application</strong><label><span>Receipt or application URL (optional)</span><input value={receiptUrl} onChange={(event) => setReceiptUrl(event.target.value)} placeholder="https://employer.example/confirmation" inputMode="url" /></label><label><span>Reference number (optional)</span><input value={receiptReference} onChange={(event) => setReceiptReference(event.target.value)} placeholder="Confirmation ID" /></label><div className="application-item__actions"><button className="primary-action" type="button" onClick={() => confirmSubmission(application)}>Save evidence</button><button className="secondary-action" type="button" onClick={() => setConfirmingId(null)}>Cancel</button></div></div>}
+                {application.events?.length > 0 && <div className="application-item__timeline"><strong>Recent activity</strong>{application.events.slice(-3).reverse().map((event) => <span key={event.id}>{event.type.replaceAll('_', ' ')} · {formatDate(event.createdAt)}</span>)}</div>}
+                {(application.submittedAt || application.submissionReceipt || application.executionState) && (
+                  <div className="application-item__evidence">
+                    <strong>Evidence</strong>
+                    <span>{application.submittedAt ? `Submitted ${formatDate(application.submittedAt)}` : 'Not submitted'}</span>
+                    <span>{application.executionState ? `Execution: ${application.executionState.replaceAll('_', ' ')}` : 'Execution state unavailable'}</span>
+                    {application.submissionReceipt?.url && <a href={application.submissionReceipt.url} target="_blank" rel="noopener noreferrer">Open submission receipt ↗</a>}
+                    {application.submissionReceipt?.reference && <span>Reference: {application.submissionReceipt.reference}</span>}
+                  </div>
+                )}
                 <div className="application-item__actions">
                   {!isApplied && !isClosed && (
-                    <button className="primary-action" type="button" onClick={() => onUpdateApplication(application.id, { status: 'applied', appliedAt: new Date().toISOString(), executionState: 'manual_confirmed' })}>Mark as applied</button>
+                    <button className="primary-action" type="button" onClick={() => beginConfirmation(application)}>Confirm submission</button>
                   )}
                   {isApplied && !isClosed && (
                     <select aria-label="Application status" value={application.status} onChange={(event) => onUpdateApplication(application.id, { status: event.target.value })}>

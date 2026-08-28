@@ -10,6 +10,8 @@ const douala = cameroonLocations.find((location) => location.id === 'douala');
 assert.equal(filterJobs(seedJobs, { origin: allCameroon, mode: 'local' }).length, 4);
 assert.equal(filterJobs(seedJobs, { query: 'software', origin: allCameroon, mode: 'local' }).length, 2);
 assert.equal(filterJobs(seedJobs, { origin: allCameroon, mode: 'remote' }).length, 1);
+const eligibleRemote = filterJobs(seedJobs, { origin: allCameroon, mode: 'remote', eligibleOnly: true });
+assert.ok(eligibleRemote.every((job) => ['cameroon-eligible', 'africa-eligible', 'worldwide'].includes(job.remoteEligibility)));
 assert.equal(filterJobs(seedJobs, { origin: yaounde, radiusKm: 50, mode: 'local' }).length, 0);
 assert.equal(filterJobs(seedJobs, { origin: douala, radiusKm: 10, mode: 'local' }).length, 4);
 

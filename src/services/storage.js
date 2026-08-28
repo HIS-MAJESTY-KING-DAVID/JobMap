@@ -2,6 +2,7 @@ const SAVED_JOBS_KEY = 'jobmap.savedJobs.v1';
 const SAVED_SEARCHES_KEY = 'jobmap.savedSearches.v1';
 const ALERTS_KEY = 'jobmap.alertsEnabled.v1';
 const ALERTED_JOBS_KEY = 'jobmap.alertedJobs.v1';
+const ALERTED_FOLLOWUPS_KEY = 'jobmap.alertedFollowups.v1';
 const APPLICATIONS_KEY = 'jobmap.applications.v1';
 
 function read(key) {
@@ -77,21 +78,36 @@ export function markJobsAlerted(jobIds) {
   return next;
 }
 
+export function getAlertedFollowUpIds() {
+  return read(ALERTED_FOLLOWUPS_KEY);
+}
+
+export function markFollowUpsAlerted(applicationIds) {
+  const next = [...new Set([...getAlertedFollowUpIds(), ...applicationIds])].slice(-500);
+  write(ALERTED_FOLLOWUPS_KEY, next);
+  return next;
+}
+
 export function getApplications() {
   return read(APPLICATIONS_KEY);
 }
 
+function makeEvent(type, metadata = {}) {
+  return { id: `event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, type, metadata, createdAt: new Date().toISOString() };
+}
+
 export function saveApplication(application) {
   const current = getApplications().filter((item) => item.id !== application.id && item.jobId !== application.jobId);
-  const next = [{ ...application, updatedAt: new Date().toISOString() }, ...current];
+  const next = [{ ...application, events: [...(application.events || []), makeEvent('pack_saved', { status: application.status || 'draft' })], updatedAt: new Date().toISOString() }, ...current];
   write(APPLICATIONS_KEY, next);
   return next;
 }
 
 export function updateApplication(applicationId, patch) {
+  const eventType = patch.status ? 'status_changed' : (patch.followUpAt !== undefined || patch.nextAction !== undefined || patch.followUpNote !== undefined ? 'follow_up_updated' : 'application_updated');
   const next = getApplications().map((application) => (
     application.id === applicationId
-      ? { ...application, ...patch, updatedAt: new Date().toISOString() }
+      ? { ...application, ...patch, events: [...(application.events || []), makeEvent(eventType, patch)], updatedAt: new Date().toISOString() }
       : application
   ));
   write(APPLICATIONS_KEY, next);

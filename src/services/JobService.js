@@ -58,7 +58,7 @@ export async function fetchJobs({ signal } = {}) {
 
 export function filterJobs(
   jobs,
-    { query = '', workMode = 'All', employmentType = 'All', origin = null, radiusKm = 0, mode = 'local' } = {},
+    { query = '', workMode = 'All', employmentType = 'All', origin = null, radiusKm = 0, mode = 'local', eligibleOnly = false } = {},
 
 ) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -79,11 +79,12 @@ export function filterJobs(
             const modeMatches = mode === 'remote' ? isRemoteJob(job) : mode !== 'local' || !isRemoteJob(job);
       const workModeMatches = workMode === 'All' || job.workMode === workMode;
       const employmentMatches = employmentType === 'All' || job.employmentType === employmentType;
+      const eligibilityMatches = !eligibleOnly || ['cameroon-eligible', 'africa-eligible', 'worldwide'].includes(job.remoteEligibility);
 
       const hasCoordinates = Number.isFinite(job.distanceKm);
       const radiusMatches = origin?.id === 'all' || radiusKm === 0 || (hasCoordinates && job.distanceKm <= radiusKm);
 
-            return modeMatches && queryMatches && workModeMatches && employmentMatches && radiusMatches;
+            return modeMatches && queryMatches && workModeMatches && employmentMatches && eligibilityMatches && radiusMatches;
 
     })
     .sort((a, b) => {

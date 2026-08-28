@@ -8,7 +8,7 @@ const PROFILE_KEY = 'jobmap-profile';
 const emptyProfile = {
   fullName: '', email: '', phone: '', targetRole: '', skills: '', languages: 'English, French',
   timezone: 'Africa/Douala (WAT)', workAuthorization: 'Cameroon', salaryPreference: '', city: '',
-  country: 'Cameroon', linkedin: '', portfolio: '', education: '', experience: '', certifications: '',
+  country: 'Cameroon', linkedin: '', portfolio: '', education: '', experience: '', certifications: '', gpa: '',
 };
 
 function readProfile() {
@@ -73,7 +73,7 @@ export default function ProfilePanel({ onBack, session, profile: providedProfile
         <div className="onboarding-card__topline"><div><p className="results-kicker">Your next best step</p><h2>{onboardingGoal ? 'Your JobMap setup' : 'What are you trying to do today?'}</h2></div><strong>{completion.percent}% ready</strong></div>
         {!onboardingGoal ? <div className="onboarding-goals">{[['discover-local', 'Find Cameroon work'], ['discover-remote', 'Find worldwide remote work'], ['prepare-apply', 'Prepare an application'], ['track', 'Track my applications']].map(([key, label]) => <button key={key} type="button" className="onboarding-goal" onClick={() => { setOnboardingGoal(key); localStorage.setItem('jobmap.onboardingGoal', key); }}>{label}<span>→</span></button>)}</div> : <div className="onboarding-card__progress"><p><b>{onboardingGoal === 'discover-local' ? 'Cameroon work' : onboardingGoal === 'discover-remote' ? 'Worldwide remote work' : onboardingGoal === 'prepare-apply' ? 'Application preparation' : 'Application tracking'}</b> is your active focus. Complete the next missing item to improve your matches.</p><div className="onboarding-checklist">{completion.checks.map(([key, complete, label]) => <span key={key} className={complete ? 'checklist-item checklist-item--complete' : 'checklist-item'}>{complete ? '✓' : '○'} {label}</span>)}</div><button type="button" className="secondary-action" onClick={() => { setOnboardingGoal(''); localStorage.removeItem('jobmap.onboardingGoal'); }}>Change focus</button></div>}
       </section>
-      <AuthPanel session={session} cvFiles={cvDocuments.map((file) => ({ ...file, path: file.storage_path, name: file.file_name }))} onCvFilesChange={(uploaded) => onCvDocumentsChange?.([...uploaded, ...cvDocuments])} />
+      <AuthPanel session={session} cvFiles={cvDocuments.map((file) => ({ ...file, path: file.storage_path, name: file.file_name }))} onCvFilesChange={(nextFiles) => onCvDocumentsChange?.(nextFiles)} />
       <div className="simplify-import">
         <div className="simplify-import__heading"><div><p className="results-kicker">Simplify bridge</p><h2>Import profile settings</h2></div><span className="profile-panel__status">User-provided only</span></div>
         <p>Export or copy your Simplify profile details, then preview the mappings before anything replaces your JobMap profile. Credentials and private extension storage are never requested.</p>
@@ -94,7 +94,7 @@ export default function ProfilePanel({ onBack, session, profile: providedProfile
         <div className="profile-form__grid"><label><span>Languages</span><input value={fieldValue(profile, 'languages')} onChange={update('languages')} /></label><label><span>Timezone</span><input value={fieldValue(profile, 'timezone')} onChange={update('timezone')} /></label></div>
         <div className="profile-form__grid"><label><span>Work authorization</span><input value={fieldValue(profile, 'workAuthorization')} onChange={update('workAuthorization')} /></label><label><span>Salary preference</span><input value={fieldValue(profile, 'salaryPreference')} onChange={update('salaryPreference')} placeholder="Currency + period" /></label></div>
         <div className="profile-form__grid"><label><span>City</span><input value={fieldValue(profile, 'city')} onChange={update('city')} placeholder="Douala" /></label><label><span>Country</span><input value={fieldValue(profile, 'country')} onChange={update('country')} /></label></div>
-        <label><span>Education</span><textarea value={fieldValue(profile, 'education')} onChange={update('education')} rows="2" placeholder="Degrees, schools, or training" /></label>
+        <div className="profile-form__grid"><label><span>Education</span><textarea value={fieldValue(profile, 'education')} onChange={update('education')} rows="2" placeholder="Degrees, schools, or training" /></label><label><span>GPA (optional)</span><input type="number" min="0" max="4" step="0.01" value={fieldValue(profile, 'gpa')} onChange={update('gpa')} placeholder="e.g. 3.50" /></label></div>
         <label><span>Experience</span><textarea value={fieldValue(profile, 'experience')} onChange={update('experience')} rows="3" placeholder="Roles, employers, and measurable outcomes" /></label>
         <div className="profile-form__grid"><label><span>LinkedIn</span><input value={fieldValue(profile, 'linkedin')} onChange={update('linkedin')} placeholder="https://linkedin.com/in/..." /></label><label><span>Portfolio</span><input value={fieldValue(profile, 'portfolio')} onChange={update('portfolio')} placeholder="https://..." /></label></div>
         <div className="profile-panel__actions"><button className="primary-action" type="submit">{saved ? 'Profile saved' : 'Save profile'}</button><button className="secondary-action" type="button" onClick={onBack}>Back to jobs</button></div>

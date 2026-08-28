@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getLearnedApplicationAnswers, rememberApplicationAnswer } from '../services/applicationAnswers.js';
 import { buildAutofillSuggestions, createAutofillBundle } from '../services/fieldAutofill.js';
+import { getApplicationReadiness } from '../services/recommendations.js';
 
 const eligibilityLabels = {
   'cameroon-eligible': 'Cameroon eligible',
@@ -49,6 +50,15 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const [reuseUnassisted, setReuseUnassisted] = useState({});
   const [autofillMessage, setAutofillMessage] = useState('');
   const [extensionMessage, setExtensionMessage] = useState('');
+  useEffect(() => {
+    const handleExtensionResult = (event) => {
+      if (event.source !== window || event.origin !== window.location.origin || event.data?.type !== 'JOBMAP_AUTOFILL_RESULT') return;
+      const result = event.data.payload || {};
+      setExtensionMessage(`Extension result: ${result.filled || 0} safe field${result.filled === 1 ? '' : 's'} filled; ${result.skipped || 0} field${result.skipped === 1 ? '' : 's'} remain paused.`);
+    };
+    window.addEventListener('message', handleExtensionResult);
+    return () => window.removeEventListener('message', handleExtensionResult);
+  }, []);
   const [pack, setPack] = useState(() => {
     const initialProfile = { ...readProfile(), ...(providedProfile || {}) };
     const knownAnswers = getLearnedApplicationAnswers();
@@ -84,6 +94,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   if (!job) return null;
 
   const capability = job.applicationCapability || 'manual';
+  const readiness = getApplicationReadiness(job, profile, visiblePack, job.remoteEligibility ? 'remote' : 'local');
   const profileSkills = profile.skills || 'your saved skills and experience';
   const autofillSuggestions = buildAutofillSuggestions({
     fields: [
@@ -92,6 +103,13 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       { id: 'phone', label: 'Phone number' },
       { id: 'targetRole', label: 'Target role' },
       { id: 'skills', label: 'Skills' },
+      { id: 'education', label: 'Education' },
+      { id: 'gpa', label: 'GPA' },
+      { id: 'experience', label: 'Experience' },
+      { id: 'linkedin', label: 'LinkedIn' },
+      { id: 'portfolio', label: 'Portfolio / website' },
+      { id: 'languages', label: 'Languages' },
+      { id: 'timezone', label: 'Timezone' },
       { id: 'workAuthorization', label: 'Work authorization' },
       { id: 'sponsorship', label: 'Visa sponsorship' },
       { id: 'salary', label: 'Salary preference' },
@@ -142,13 +160,14 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     setLearnedAnswers(answerMemory);
     const finalSuggestions = buildAutofillSuggestions({ fields: autofillSuggestions.map(({ fieldId, label, type }) => ({ id: fieldId, label, type })), profile, job, learnedAnswers: answerMemory, unassistedMode: true });
     const autofillBundle = visiblePack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
+    const nextStatus = status === 'ready_for_approval' && !readiness.canApprove ? 'needs_user' : status;
     onSaveApplication?.({
       id: `application-${job.id}`,
       jobId: job.id,
       job,
       pack: { ...visiblePack, autofillBundle },
       autofillBundle,
-      status,
+      status: nextStatus,
       executionRoute: capability,
       learnedAnswerKeys: Object.keys(answerMemory),
       createdAt: new Date().toISOString(),
@@ -220,8 +239,9 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
                 </label>
               ))}
             </div>
+            {!readiness.canApprove && <p className="apply-flow__guardrail apply-flow__guardrail--warning">Approval paused: {readiness.reasons.join(' ')}</p>}
             <div className="apply-flow__actions">
-              <button className="primary-action" type="button" onClick={() => savePack('ready_for_approval')}>Save approved pack</button>
+              <button className="primary-action" type="button" onClick={() => savePack('ready_for_approval')}>{readiness.canApprove ? 'Save approved pack' : 'Save pack for review'}</button>
               <button className="secondary-action" type="button" onClick={() => setStep('prepare')}>Back</button>
             </div>
           </>
