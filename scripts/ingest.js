@@ -347,6 +347,25 @@ async function fetchLever(source) {
   }));
 }
 
+async function fetchAshby(source) {
+  const boardName = source.boardName || source.boardToken || source.site;
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(boardName)}?includeCompensation=true`;
+  const payload = JSON.parse(await fetchText(url));
+  return (payload.jobs || []).map((job) => ({
+    externalId: job.id,
+    title: job.title,
+    company: source.company || source.owner || 'Preply',
+    location: job.locationName || (job.secondaryLocations || []).map((item) => item.locationName || item.name || item).join(', ') || 'Worldwide remote',
+    description: job.descriptionPlain || job.descriptionHtml,
+    url: job.jobUrl,
+    applyUrl: job.applyUrl || job.jobUrl,
+    postedAt: job.publishedAt,
+    employmentType: job.employmentType,
+    workMode: job.isRemote ? 'Remote' : (job.workplaceType || 'Not listed'),
+    tags: [job.department, job.team, job.workplaceType].filter(Boolean),
+  }));
+}
+
 async function fetchReliefWeb(source) {
   const appname = process.env.RELIEFWEB_APPNAME || source.appname;
   if (!appname || appname.startsWith('REPLACE_')) throw new Error('ReliefWeb requires an approved appname in source configuration or RELIEFWEB_APPNAME');
@@ -536,7 +555,9 @@ async function main() {
         ? await fetchGreenhouse(source)
         : source.type === 'lever'
           ? await fetchLever(source)
-          : source.type === 'reliefweb'
+          : source.type === 'ashby'
+            ? await fetchAshby(source)
+            : source.type === 'reliefweb'
               ? await fetchReliefWeb(source)
               : source.type === 'fne'
                 ? await fetchFne(source)

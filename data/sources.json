@@ -125,6 +125,20 @@
       "defaultLocation": "Cameroon",
       "scope": "Cameroon-wide",
       "status": "configuration-required"
+    },
+    {
+      "id": "ashby-preply",
+      "label": "Preply Careers (Ashby ATS)",
+      "type": "ashby",
+      "enabled": true,
+      "boardName": "preply",
+      "defaultLocation": "Worldwide remote",
+      "scope": "Global remote",
+      "remote": true,
+      "status": "verified-public-api",
+      "sourceTrust": "verified",
+      "owner": "Preply",
+      "notes": "Employer ATS posting feed via public Ashby API."
     }
   ]
 }
