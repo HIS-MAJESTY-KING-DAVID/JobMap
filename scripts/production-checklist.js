@@ -23,7 +23,7 @@ check(Boolean(manifest.name && manifest.start_url && manifest.display && manifes
 check(fs.existsSync(path.join(root, 'public/sw.js')), 'service worker is missing');
 check(fs.existsSync(path.join(root, 'public/icon.svg')), 'PWA icon is missing');
 check(Array.isArray(sources) && sources.filter((source) => source.enabled).length >= 5, 'fewer than five enabled feed sources are configured');
-for (const source of sources.filter((item) => item.enabled)) check(Boolean(source.url || source.boardToken || source.site), `enabled source ${source.id} has no endpoint configuration`);
+for (const source of sources.filter((item) => item.enabled)) check(Boolean(source.url || source.boardToken || source.site || source.boardName), `enabled source ${source.id} has no endpoint configuration`);
 check(Array.isArray(jobs) && jobs.length > 0, 'published job feed is empty');
 for (const job of jobs.slice(0, 100)) {
   check(Boolean(job.title && job.company && job.source && job.sourceUrl), `job ${job.id || 'unknown'} lacks required provenance fields`);

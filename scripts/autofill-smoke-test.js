@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+
+// Node has no sessionStorage; the bundle session key lives there in the browser.
+globalThis.sessionStorage = { getItem: () => null, setItem: () => {} };
+
 import { buildAutofillSuggestions, createAutofillBundle } from '../src/services/fieldAutofill.js';
 
 const profile = {
@@ -43,7 +47,7 @@ assert.equal(suggestions.find((item) => item.fieldId === 'sponsor').requiresConf
 assert.equal(suggestions.find((item) => item.fieldId === 'attest').blocked, true);
 assert.equal(suggestions.find((item) => item.fieldId === 'captcha').blocked, true);
 assert.equal(suggestions.find((item) => item.fieldId === 'mystery').status, 'blocked');
-const bundle = createAutofillBundle({ suggestions, job: { id: 'job-1' }, cvDocumentId: 'cv-1', origin: 'https://jobmap-ten.vercel.app' });
+const bundle = await createAutofillBundle({ suggestions, job: { id: 'job-1' }, cvDocumentId: 'cv-1', origin: 'https://jobmap-ten.vercel.app' });
 assert.equal(bundle.fields.length, 8);
 assert.deepEqual(bundle.blockedFieldIds, ['attest', 'captcha', 'mystery']);
 assert.equal(bundle.fields.find((item) => item.fieldId === 'fullName').value, 'Kollo David');

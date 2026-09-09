@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { getEligibilitySummary, getExecutionRoute, getFitScore, getRecommendationReasons } from '../services/recommendations';
+import { getEligibilitySummary, getFitScore, getRecommendationReasons } from '../services/recommendations';
+import { capabilityLabels, getCapabilityDetail } from '../services/capabilityRegistry';
 
 function formatDate(value) {
   if (!value) return 'Not provided';
@@ -29,7 +30,7 @@ export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved,
   const [shareStatus, setShareStatus] = useState('');
   if (!job) return null;
 
-  const route = getExecutionRoute(job);
+  const route = getCapabilityDetail(job);
   const reasons = getRecommendationReasons(job, profile, appMode);
   const fit = getFitScore(job, profile, appMode);
   const eligibility = getEligibilitySummary(job, appMode);
@@ -64,7 +65,7 @@ export default function JobDetailPanel({ job, onClose, onSave, onApply, isSaved,
         <div><b>Fit signal · {fit.score}/100</b><span>{fit.matchedTerms.length ? `Matched: ${fit.matchedTerms.join(', ')}` : 'Add more profile details to improve the match signal.'}</span></div>
         <div><b>Eligibility</b><span>{eligibility.label}</span><small>{eligibility.detail}</small></div>
         <div><b>Why this opening</b><span>{reasons.length ? reasons.join(' · ') : 'Explore this source and decide if it fits your goals.'}</span></div>
-        <div><b>Application route</b><span className={`route-chip route-chip--${route.key}`}>{route.label}</span><small>{route.detail}</small></div>
+        <div><b>Application route</b><span className={`route-chip route-chip--${route.key}`}>{capabilityLabels[route.capability] || route.label}</span><small>{route.note}{route.health && route.health !== 'n/a' ? ` · Adapter health: ${route.health}` : ''}</small></div>
       </div>
       <div className="job-detail__facts">
         <span><b>Posted</b>{formatDate(job.postedAt)}</span>

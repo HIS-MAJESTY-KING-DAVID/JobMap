@@ -117,3 +117,6 @@ dist
 .pnp.*
 .vercel
 .env*
+
+# Freebuff desktop app workspace state
+.freebuff/

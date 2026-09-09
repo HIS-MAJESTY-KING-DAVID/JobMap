@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react';
+import { revokeAutofillBundle } from '../services/fieldAutofill.js';
 
 const statusLabels = {
   draft: 'Draft',
   ready_for_approval: 'Ready for review',
+  ready_for_user_approval: 'Ready for your approval',
+  queued: 'Queued for execution',
+  filling: 'Filling',
   needs_user: 'Needs your input',
   applied: 'Applied',
   screening: 'Screening',
@@ -14,6 +18,17 @@ const statusLabels = {
   cancelled: 'Cancelled',
   withdrawn: 'Withdrawn',
   manual_fallback: 'Manual fallback',
+};
+
+const failureReasonLabels = {
+  captcha: 'CAPTCHA blocked',
+  auth: 'Login / MFA required',
+  unexpected_field: 'Required field not approved',
+  layout_change: 'Form layout changed',
+  expired_job: 'Job is no longer accepting applications',
+  network: 'Network error',
+  extension_unreachable: 'Employer page did not answer',
+  revoked: 'Handoff was revoked',
 };
 
 function formatDate(value) {
@@ -95,6 +110,8 @@ export default function ApplicationQueuePanel({ applications, onUpdateApplicatio
                 <h2>{application.job?.title || application.pack?.targetRole || 'Untitled application'}</h2>
                 <p>{application.job?.location || 'Location not specified'} · Updated {formatDate(application.updatedAt || application.createdAt)}</p>
                 <p className="application-item__followup">{formatFollowUp(application.followUpAt)}{application.nextAction ? ` · ${application.nextAction}` : ''}</p>
+                {application.status === 'failed' && <p className="application-item__failure" role="alert">Failed: {failureReasonLabels[application.failureReason] || application.failureReason || 'unexpected problem'}</p>}
+                {application.executionState && <p className="application-item__execution">Execution: {application.executionState.replaceAll('_', ' ')}{application.executionRoute ? ` via ${application.executionRoute}` : ''}</p>}
                 {confirmingId === application.id && <div className="application-item__confirmation"><strong>Confirm only after the employer form accepts your application</strong><label><span>Receipt or application URL (optional)</span><input value={receiptUrl} onChange={(event) => setReceiptUrl(event.target.value)} placeholder="https://employer.example/confirmation" inputMode="url" /></label><label><span>Reference number (optional)</span><input value={receiptReference} onChange={(event) => setReceiptReference(event.target.value)} placeholder="Confirmation ID" /></label><div className="application-item__actions"><button className="primary-action" type="button" onClick={() => confirmSubmission(application)}>Save evidence</button><button className="secondary-action" type="button" onClick={() => setConfirmingId(null)}>Cancel</button></div></div>}
                 {application.events?.length > 0 && <div className="application-item__timeline"><strong>Recent activity</strong>{application.events.slice(-3).reverse().map((event) => <span key={event.id}>{event.type.replaceAll('_', ' ')} · {formatDate(event.createdAt)}</span>)}</div>}
                 {(application.submittedAt || application.submissionReceipt || application.executionState) && (
@@ -119,7 +136,11 @@ export default function ApplicationQueuePanel({ applications, onUpdateApplicatio
                     <button className="secondary-action" type="button" onClick={() => onUpdateApplication(application.id, { status: 'needs_user' })}>Needs my input</button>
                   )}
                   {!isClosed && (
-                    <button className="secondary-action" type="button" onClick={() => onUpdateApplication(application.id, { status: 'cancelled' })}>Cancel</button>
+                    <button className="secondary-action" type="button" onClick={() => {
+                      const bundleId = application.pack?.autofillBundle?.bundleId || application.autofillBundle?.bundleId;
+                      if (bundleId) revokeAutofillBundle(bundleId);
+                      onUpdateApplication(application.id, { status: 'cancelled' });
+                    }}>Cancel</button>
                   )}
                   {application.job?.applyUrl && application.status !== 'submitted' && (
                     <a className="secondary-action" href={application.job.applyUrl} target="_blank" rel="noopener noreferrer">Continue manually ↗</a>

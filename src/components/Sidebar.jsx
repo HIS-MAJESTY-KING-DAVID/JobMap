@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ApplicationQueuePanel from './ApplicationQueuePanel';
+import JobsDashboard from './JobsDashboard';
 import ProfilePanel from './ProfilePanel';
 import SourceHealthPanel from './SourceHealthPanel';
+import { buildSwipeQueue, markSwipeSeen, resetSwipeSeen } from '../services/swipeQueue';
 
 function formatDate(value) {
 
@@ -77,9 +79,21 @@ export default function Sidebar({
 }) {
 
   const currentLocation = locations.find((location) => location.id === locationId) || locations[0];
+
+  // Swipe queue: profile-weighted, randomised, deduplication-aware.
+  const [swipeQueueEpoch, setSwipeQueueEpoch] = useState(0); // bump to reshuffle
+  const swipeQueue = useMemo(
+    () => buildSwipeQueue(jobs, profile, eligibleOnly),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [jobs, profile, eligibleOnly, swipeQueueEpoch],
+  );
   const [swipeIndex, setSwipeIndex] = useState(0);
-  const safeSwipeIndex = Math.min(swipeIndex, Math.max(jobs.length - 1, 0));
-  const swipeJob = jobs[safeSwipeIndex];
+  const safeSwipeIndex = Math.min(swipeIndex, Math.max(swipeQueue.length - 1, 0));
+  const swipeJob = swipeQueue[safeSwipeIndex] || null;
+
+  // Reset swipe index when queue rebuilds.
+  useEffect(() => { setSwipeIndex(0); }, [swipeQueueEpoch]);
+
   const visibleJobs = activeTab === 'saved' ? savedJobs : jobs;
 
   const sidebarRef = useRef(null);
@@ -183,14 +197,108 @@ export default function Sidebar({
         )}
       </div>
 
-            {activeTab === 'tracker' ? <ApplicationQueuePanel applications={applications} onUpdateApplication={onUpdateApplication} onImportApplications={onImportApplications} onBack={() => onTabChange('discover')} session={session} /> : activeTab === 'profile' ? <ProfilePanel session={session} profile={profile} cvDocuments={cvDocuments} onCvDocumentsChange={onCvDocumentsChange} onBack={() => onTabChange('discover')} /> : (
+            {activeTab === 'tracker' ? (
+            <JobsDashboard
+              applications={applications}
+              onUpdateApplication={onUpdateApplication}
+              onImportApplications={onImportApplications}
+              onApplyJob={onApplyJob}
+              onBack={() => onTabChange('discover')}
+              session={session}
+            />
+          ) : activeTab === 'profile' ? (
+            <ProfilePanel session={session} profile={profile} cvDocuments={cvDocuments} onCvDocumentsChange={onCvDocumentsChange} onBack={() => onTabChange('discover')} />
+          ) : (
             activeTab === 'swipe' ? (
               <section className="swipe-queue" aria-label="Swipe discovery queue">
-                <div className="results-header"><div><p className="results-kicker">Global Remote queue</p><h1>{Math.max(jobs.length - safeSwipeIndex, 0)} <span>to review</span></h1></div><span className="results-badge">User-controlled</span></div>
-                {!isLoading && !error && !swipeJob && <div className="state-card"><strong>You are caught up.</strong><span>Broaden the remote search or come back after the next feed refresh.</span></div>}
-                {swipeJob && <article className="swipe-card"><p className="job-detail__source">{swipeJob.source}</p><h2>{swipeJob.title}</h2><strong>{swipeJob.company}</strong><p>{swipeJob.location} · {swipeJob.workMode || 'Remote mode not listed'}</p><p className="swipe-card__description">{swipeJob.description || 'Review the original source for the complete role description.'}</p><div className="job-detail__chips">{swipeJob.remoteEligibility && <span>{swipeJob.remoteEligibility.replaceAll('-', ' ')}</span>}{swipeJob.sourceTrust && <span>{swipeJob.sourceTrust.replaceAll('-', ' ')}</span>}</div><div className="swipe-card__actions"><button className="secondary-action" type="button" onClick={() => setSwipeIndex((index) => index + 1)}>Pass</button><button className="secondary-action" type="button" onClick={() => onSaveJob(swipeJob)}>Save</button><button className="primary-action" type="button" onClick={() => { onApplyJob?.(swipeJob); setSwipeIndex((index) => index + 1); }}>ApplyFlow</button></div></article>}
+                <div className="results-header">
+                  <div>
+                    <p className="results-kicker">Global Remote queue</p>
+                    <h1>{Math.max(swipeQueue.length - safeSwipeIndex, 0)} <span>to review</span></h1>
+                  </div>
+                  <span className="results-badge">
+                    {profile?.targetRole ? `Ranked for “${profile.targetRole.slice(0, 20)}”` : 'User-controlled'}
+                  </span>
+                </div>
+                <div className="swipe-queue__controls">
+                  <button
+                    className="compact-action"
+                    type="button"
+                    onClick={() => {
+                      setSwipeQueueEpoch((e) => e + 1);
+                    }}
+                    aria-label="Shuffle swipe queue"
+                  >
+                    ↺ Shuffle
+                  </button>
+                  <button
+                    className="compact-action"
+                    type="button"
+                    onClick={() => {
+                      resetSwipeSeen();
+                      setSwipeQueueEpoch((e) => e + 1);
+                    }}
+                    aria-label="Reset seen cards and reshuffle"
+                  >
+                    Reset seen
+                  </button>
+                </div>
+                {!isLoading && !error && !swipeJob && (
+                  <div className="state-card">
+                    <strong>You are caught up.</strong>
+                    <span>Broaden the remote search, reset seen cards, or come back after the next feed refresh.</span>
+                  </div>
+                )}
+                {swipeJob && (
+                  <article className="swipe-card">
+                    <p className="job-detail__source">{swipeJob.source}</p>
+                    <h2>{swipeJob.title}</h2>
+                    <strong>{swipeJob.company}</strong>
+                    <p>{swipeJob.location} · {swipeJob.workMode || 'Remote mode not listed'}</p>
+                    <p className="swipe-card__description">{swipeJob.description || 'Review the original source for the complete role description.'}</p>
+                    <div className="job-detail__chips">
+                      {swipeJob.remoteEligibility && <span>{swipeJob.remoteEligibility.replaceAll('-', ' ')}</span>}
+                      {swipeJob.sourceTrust && <span>{swipeJob.sourceTrust.replaceAll('-', ' ')}</span>}
+                    </div>
+                    <div className="swipe-card__actions">
+                      <button
+                        className="secondary-action"
+                        type="button"
+                        onClick={() => {
+                          markSwipeSeen(swipeJob.id);
+                          setSwipeIndex((index) => index + 1);
+                        }}
+                      >
+                        Pass
+                      </button>
+                      <button
+                        className="secondary-action"
+                        type="button"
+                        onClick={() => {
+                          markSwipeSeen(swipeJob.id);
+                          onSaveJob(swipeJob);
+                          setSwipeIndex((index) => index + 1);
+                        }}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="primary-action"
+                        type="button"
+                        onClick={() => {
+                          markSwipeSeen(swipeJob.id);
+                          onApplyJob?.(swipeJob);
+                          setSwipeIndex((index) => index + 1);
+                        }}
+                      >
+                        ApplyFlow
+                      </button>
+                    </div>
+                  </article>
+                )}
               </section>
-            ) : <>
+            ) : (
+              <>
       <div className="results-header"><div><p className="results-kicker">{activeTab === 'saved' ? 'Saved openings' : `Openings in ${currentLocation.name}`}</p><h1>{visibleJobs.length} <span>{activeTab === 'saved' ? 'saved' : `of ${totalJobs} roles`}</span></h1></div><span className="results-badge">{activeTab === 'saved' ? 'Your list' : 'Live feed'}</span></div>
       <div className="results-list" aria-live="polite">
         {isLoading && activeTab !== 'saved' && <div className="state-card"><span className="spinner" /> Loading current openings…</div>}
@@ -198,7 +306,9 @@ export default function Sidebar({
         {!isLoading && !error && visibleJobs.length === 0 && <div className="state-card"><strong>{activeTab === 'saved' ? 'No saved openings yet.' : 'No openings match this area.'}</strong><span>{activeTab === 'saved' ? 'Save a role from the feed to keep it here.' : 'Try All Cameroon, a wider radius, or a broader keyword.'}</span></div>}
         {!isLoading && !error && visibleJobs.map((job) => <JobCard key={job.id} job={job} isSaved={savedJobIds.includes(job.id)} isSelected={job.id === selectedJobId} onSelect={onSelectJob} onSave={onSaveJob} />)}
       </div>
-      </>)}
+      </>
+            )
+          )}
 
             <SourceHealthPanel metadata={sourceHealth} />
             <footer className="sidebar__footer">

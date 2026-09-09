@@ -1,7 +1,7 @@
 # Global Remote & Unused Job Sources Datasheet
 
-**Last updated:** 31 August 2026  
-**Status:** Ingestion enabled for 5 priority global feeds (Jobicy, Remotive, Remote OK, We Work Remotely, Preply Ashby); 132 deduplicated candidates registered across 16 categories.
+**Last updated:** 7 September 2026  
+**Status:** Ingestion enabled for 5 priority global feeds (Jobicy, Remotive, Remote OK, We Work Remotely, Preply Ashby); 134 deduplicated candidates registered across 16 categories.
 
 ---
 
@@ -59,6 +59,7 @@ All platforms provided in user prompt lists and reference screenshots have been 
 *Preserved as `candidate-deprecated-or-defunct`.*
 - **GitHub Jobs** (`https://jobs.github.com/`): Retired by GitHub / Microsoft.
 - **Stack Overflow Jobs** (`https://stackoverflow.com/jobs`): Retired by Stack Overflow.
+- **Google Jobs** (`https://jobs.google.com/`): Not an ingestible API. Google for Jobs is a search engine surface that aggregates job postings from employer pages implementing `JobPosting` JSON-LD schema. The legacy Cloud Talent Solution API (Cloud Jobs API) is deprecated. No public feed or polling endpoint exists — excluded from active sources.
 
 ### Non-Job Software Tools & Services
 *Preserved as `candidate-non-job-service`.*
@@ -66,7 +67,7 @@ All platforms provided in user prompt lists and reference screenshots have been 
 - **E-commerce & Selling**: Etsy, eBay, Amazon Services, Redbubble, Zazzle.
 - **Stock Photography & Video**: Shutterstock, Adobe Stock, iStockPhoto, Alamy, Pond5.
 - **Virtual Event Hosting**: Hopin, Eventbrite, Run the World, Bizzabo, Airmeet.
-- **Tools**: RezPass (resume scoring tool).
+- **Tools**: RezPass (resume scoring tool), **CVgood** (`https://cvgood.dev`) — AI-powered CV/ATS optimizer and cover letter generator (French-language focused). Not a job board; no job listings or feed. Scouted and confirmed as a career tool, not a source.
 
 ---
 

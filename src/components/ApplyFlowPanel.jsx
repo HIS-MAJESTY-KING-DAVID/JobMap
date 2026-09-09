@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { getLearnedApplicationAnswers, rememberApplicationAnswer } from '../services/applicationAnswers.js';
 import { buildAutofillSuggestions, createAutofillBundle } from '../services/fieldAutofill.js';
 import { getApplicationReadiness } from '../services/recommendations.js';
+import { capabilityLabels, getCapabilityDetail } from '../services/capabilityRegistry.js';
+import { detectAdapter, fetchGreenhouseQuestions, questionTypeLabels, submitGreenhouseApplication } from '../services/atsAdapters.js';
 
 const eligibilityLabels = {
   'cameroon-eligible': 'Cameroon eligible',
@@ -11,18 +13,13 @@ const eligibilityLabels = {
   unclear: 'Eligibility unclear',
 };
 
-const capabilityLabels = {
-  api: 'In-site submission available',
-  extension: 'Browser-assisted submission next',
-  manual: 'Manual source fallback',
-  unsupported: 'Submission route not verified',
-};
-
 const learnedFields = [
   { key: 'workAuthorization', label: 'Work authorization', placeholder: 'Example: Authorized to work in Cameroon; requires sponsorship elsewhere.' },
   { key: 'sponsorship', label: 'Sponsorship', placeholder: 'Example: I may require sponsorship for this country.' },
   { key: 'salary', label: 'Salary preference', placeholder: 'Example: USD 2,000 monthly, negotiable.' },
 ];
+
+const questionInputTypes = new Set(['input_text', 'multi_line_text', 'textarea', 'date', 'currency']);
 
 function DraftBlock({ label, children }) {
   return (
@@ -41,6 +38,13 @@ function readProfile() {
   }
 }
 
+/** Append the approved cover note to a bundle's fields so the bridge can fill it. */
+function withCoverNote(bundle, pack) {
+  const note = String(pack.coverNote || '').trim();
+  if (!note || bundle.fields.some((field) => field.fieldId === 'coverNote')) return bundle;
+  return { ...bundle, fields: [...bundle.fields, { fieldId: 'coverNote', value: note, classification: 'generated_draft', source: 'pack' }] };
+}
+
 export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocuments = [], session, onClose, onSaveApplication }) {
   const [step, setStep] = useState('prepare');
   const sheetRef = useRef(null);
@@ -57,15 +61,97 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const [reuseUnassisted, setReuseUnassisted] = useState({});
   const [autofillMessage, setAutofillMessage] = useState('');
   const [extensionMessage, setExtensionMessage] = useState('');
+  const [adapterMessage, setAdapterMessage] = useState('');
+  const [employerQuestions, setEmployerQuestions] = useState([]);
+  const [questionStatus, setQuestionStatus] = useState('idle');
+  const [questionAnswers, setQuestionAnswers] = useState({});
+  const sentBundleIdRef = useRef(null);
+  const handledBundleIdRef = useRef(null);
+
+  // Adapter + capability detail for the current job (before the pack is built).
+  const adapterKey = job ? detectAdapter(job.applyUrl) : null;
+  const capabilityDetail = getCapabilityDetail(job || {});
+
+  useEffect(() => {
+    if (adapterKey !== 'greenhouse' || !job?.applyUrl) {
+      setEmployerQuestions([]);
+      setQuestionStatus('idle');
+      return;
+    }
+    let active = true;
+    setQuestionStatus('loading');
+    fetchGreenhouseQuestions(job.applyUrl).then((questions) => {
+      if (!active) return;
+      setEmployerQuestions(questions);
+      setQuestionStatus(questions.length ? 'loaded' : 'unavailable');
+    });
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.id, adapterKey]);
+
   useEffect(() => {
     const handleExtensionResult = (event) => {
       if (event.source !== window || event.origin !== window.location.origin || event.data?.type !== 'JOBMAP_AUTOFILL_RESULT') return;
       const result = event.data.payload || {};
-      setExtensionMessage(`Extension result: ${result.filled || 0} safe field${result.filled === 1 ? '' : 's'} filled; ${result.skipped || 0} field${result.skipped === 1 ? '' : 's'} remain paused.`);
+      if (sentBundleIdRef.current && result.bundleId && result.bundleId !== sentBundleIdRef.current) return;
+      handledBundleIdRef.current = result.bundleId || handledBundleIdRef.current;
+      const filledCount = result.filled || 0;
+      const blockedCount = result.blockedRequired?.length || 0;
+
+      if (result.ok === false || result.failureReason) {
+        const failureReason = result.failureReason || 'network';
+        setExtensionMessage(`Extension could not fill this form: ${result.reason || failureReason.replaceAll('_', ' ')}. Finish it manually — your pack is safe.`);
+        onSaveApplication?.({
+          id: `application-${job.id}`,
+          jobId: job.id,
+          job,
+          pack: visiblePackRef.current,
+          status: 'failed',
+          failureReason,
+          executionRoute: 'extension',
+          executionState: 'extension_failed',
+          events: [{
+            id: `event-ext-fail-${Date.now()}`,
+            type: 'extension_failed',
+            createdAt: new Date().toISOString(),
+            metadata: { bundleId: result.bundleId || null, reason: result.reason || '', failureReason },
+          }],
+          createdAt: new Date().toISOString(),
+        });
+        return;
+      }
+
+      setExtensionMessage(`Extension filled ${filledCount} safe field${filledCount === 1 ? '' : 's'}; ${blockedCount} required field${blockedCount === 1 ? '' : 's'} need you. Attach your CV on the form — JobMap never uploads it.`);
+      // Fill receipt: the pack is on the real form; the user finishes + submits.
+      onSaveApplication?.({
+        id: `application-${job.id}`,
+        jobId: job.id,
+        job,
+        pack: visiblePackRef.current,
+        status: 'needs_user',
+        executionRoute: 'extension',
+        executionState: 'extension_filled',
+        needsUserReason: blockedCount ? 'Required fields remain on the employer form.' : 'Review the form and submit it yourself.',
+        events: [{
+          id: `event-ext-${Date.now()}`,
+          type: 'extension_fill',
+          createdAt: new Date().toISOString(),
+          metadata: {
+            filled: filledCount,
+            skipped: result.skipped || 0,
+            blockedRequired: blockedCount,
+            bundleId: result.bundleId || null,
+            rejectedFields: result.rejectedFields || [],
+            cvUserAction: Boolean(result.cv?.userAction),
+          },
+        }],
+        createdAt: new Date().toISOString(),
+      });
     };
     window.addEventListener('message', handleExtensionResult);
     return () => window.removeEventListener('message', handleExtensionResult);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.id]);
   const [pack, setPack] = useState(() => {
     const initialProfile = { ...readProfile(), ...(providedProfile || {}) };
     const knownAnswers = getLearnedApplicationAnswers();
@@ -98,9 +184,13 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     cvDocumentId: pack.cvDocumentId || defaultCv?.id || '',
   };
 
+  // Ref so the extension receipt handler can read the current pack without stale closure.
+  const visiblePackRef = useRef(visiblePack);
+  useEffect(() => { visiblePackRef.current = visiblePack; });
+
   if (!job) return null;
 
-  const capability = job.applicationCapability || 'manual';
+  const isGreenhouseJob = adapterKey === 'greenhouse' || adapterKey === 'stripe-greenhouse';
   const readiness = getApplicationReadiness(job, profile, visiblePack, job.remoteEligibility ? 'remote' : 'local');
   const profileSkills = profile.skills || 'your saved skills and experience';
   const autofillSuggestions = buildAutofillSuggestions({
@@ -119,6 +209,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       { id: 'portfolio', label: 'Portfolio / website' },
       { id: 'languages', label: 'Languages' },
       { id: 'timezone', label: 'Timezone' },
+      { id: 'coverNote', label: 'Cover letter' },
       { id: 'workAuthorization', label: 'Work authorization' },
       { id: 'sponsorship', label: 'Visa sponsorship' },
       { id: 'salary', label: 'Salary preference' },
@@ -134,8 +225,9 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     ...current,
     learnedAnswers: { ...current.learnedAnswers, [key]: event.target.value },
   }));
-  const runAutoFill = () => {
-    const bundle = createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
+  const updateQuestionAnswer = (key) => (event) => setQuestionAnswers((current) => ({ ...current, [key]: event.target.value }));
+  const runAutoFill = async () => {
+    const bundle = withCoverNote(await createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId }), visiblePack);
     const values = Object.fromEntries(bundle.fields.map(({ fieldId, value }) => [fieldId, value]));
     setPack((current) => ({
       ...current,
@@ -150,11 +242,85 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     const blockedCount = bundle.blockedFieldIds.length;
     setAutofillMessage(`Applied ${safeCount} safe field${safeCount === 1 ? '' : 's'} to this pack; ${reviewCount} require review${blockedCount ? `; ${blockedCount} blocked` : ''}.`);
   };
-  const sendToExtension = () => {
-    const bundle = visiblePack.autofillBundle;
-    if (!bundle) { setExtensionMessage('Run AutoFill and save the pack before handing fields to the extension.'); return; }
-    window.postMessage({ type: 'JOBMAP_AUTOFILL_HANDOFF', payload: { ...bundle, allowedOrigin: window.location.origin, sentAt: new Date().toISOString() } }, window.location.origin);
-    setExtensionMessage('Approved safe fields sent to the JobMap extension. Risky and unknown fields remain paused.');
+
+  const sendToExtension = async () => {
+    let bundle = visiblePack.autofillBundle;
+    if (!bundle) {
+      bundle = withCoverNote(await createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId }), visiblePack);
+      setPack((current) => ({ ...current, autofillBundle: bundle }));
+    }
+    sentBundleIdRef.current = bundle.bundleId;
+    handledBundleIdRef.current = null;
+    window.postMessage({ type: 'JOBMAP_AUTOFILL_HANDOFF', payload: { ...bundle, sentAt: new Date().toISOString() } }, window.location.origin);
+    setExtensionMessage('Opening the employer form to fill approved safe fields…');
+    // If the extension never answers (not installed, or its worker restarted),
+    // downgrade the queued record so it cannot sit as queued forever.
+    window.setTimeout(() => {
+      if (handledBundleIdRef.current === bundle.bundleId) return;
+      setExtensionMessage('No receipt from the extension yet. Open the employer form to finish — your pack is safe in JobMap.');
+      onSaveApplication?.({
+        id: `application-${job.id}`,
+        jobId: job.id,
+        job,
+        pack: visiblePackRef.current,
+        status: 'needs_user',
+        executionRoute: 'extension',
+        executionState: 'manual_fallback',
+        needsUserReason: 'No extension receipt was received. Complete the employer form manually.',
+        events: [{ id: `event-ext-timeout-${Date.now()}`, type: 'extension_no_receipt', createdAt: new Date().toISOString(), metadata: { bundleId: bundle.bundleId } }],
+        createdAt: new Date().toISOString(),
+      });
+    }, 60_000);
+    // Queue it as an execution record immediately; the receipt updates it below.
+    onSaveApplication?.({
+      id: `application-${job.id}`,
+      jobId: job.id,
+      job,
+      pack: visiblePackRef.current,
+      autofillBundle: bundle,
+      status: 'queued',
+      executionRoute: 'extension',
+      executionState: 'queued',
+      events: [{ id: `event-queue-${Date.now()}`, type: 'queued_for_extension', createdAt: new Date().toISOString(), metadata: { bundleId: bundle.bundleId } }],
+      createdAt: new Date().toISOString(),
+    });
+  };
+
+  const submitViaAdapter = async () => {
+    setAdapterMessage('Submitting safe fields to the Greenhouse public endpoint…');
+    const result = await submitGreenhouseApplication({ applyUrl: job.applyUrl, pack: visiblePack, profile });
+    if (result.success && result.confirmationId) {
+      setAdapterMessage(`Verified by Greenhouse (id ${result.confirmationId}). ${result.reason}`);
+      onSaveApplication?.({
+        id: `application-${job.id}`,
+        jobId: job.id,
+        job,
+        pack: visiblePack,
+        status: 'applied',
+        executionRoute: 'api',
+        appliedAt: new Date().toISOString(),
+        submittedAt: new Date().toISOString(),
+        executionState: 'adapter_submitted',
+        submissionReceipt: { url: result.receiptUrl, reference: result.confirmationId, confirmedBy: 'greenhouse-adapter', confirmedAt: new Date().toISOString() },
+        events: [{ id: `event-ats-${Date.now()}`, type: 'adapter_submitted', createdAt: new Date().toISOString(), metadata: { adapter: adapterKey, fieldsSubmitted: result.fieldsSubmitted, confirmationId: result.confirmationId } }],
+        createdAt: new Date().toISOString(),
+      });
+      return;
+    }
+    // Never mark Applied without a verified receipt — open the page instead.
+    setAdapterMessage(`${result.reason} This is not recorded as submitted until you confirm evidence.`);
+    if (result.receiptUrl && result.receiptUrl !== '#') window.open(result.receiptUrl, '_blank', 'noopener,noreferrer');
+    onSaveApplication?.({
+      id: `application-${job.id}`,
+      jobId: job.id,
+      job,
+      pack: visiblePack,
+      status: 'manual_fallback',
+      executionRoute: 'manual',
+      executionState: 'manual_fallback',
+      events: [{ id: `event-fallback-${Date.now()}`, type: 'adapter_fallback', createdAt: new Date().toISOString(), metadata: { adapter: adapterKey, reason: result.reason } }],
+      createdAt: new Date().toISOString(),
+    });
   };
   const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
   const savePack = (status) => {
@@ -168,7 +334,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     });
     setLearnedAnswers(answerMemory);
     const finalSuggestions = buildAutofillSuggestions({ fields: autofillSuggestions.map(({ fieldId, label, type }) => ({ id: fieldId, label, type })), profile, job, learnedAnswers: answerMemory, unassistedMode: true });
-    const autofillBundle = visiblePack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
+    const autofillBundle = withCoverNote(visiblePack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId }), visiblePack);
     const nextStatus = status === 'ready_for_approval' && !readiness.canApprove ? 'needs_user' : status;
     onSaveApplication?.({
       id: `application-${job.id}`,
@@ -177,7 +343,9 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       pack: { ...visiblePack, autofillBundle },
       autofillBundle,
       status: nextStatus,
-      executionRoute: capability,
+      executionRoute: capabilityDetail.capability,
+      employerQuestions: employerQuestions.map(({ key, label, type, required }) => ({ key, label, type, required })),
+      questionAnswers,
       learnedAnswerKeys: Object.keys(answerMemory),
       createdAt: new Date().toISOString(),
     });
@@ -201,16 +369,26 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
           <span>{job.company}</span>
           <strong>{job.title}</strong>
           <small>{job.location} · {eligibilityLabels[job.remoteEligibility] || 'Source eligibility not yet classified'}</small>
-          <span className="apply-flow__capability">{capabilityLabels[capability] || capabilityLabels.manual}</span>
+          <span className="apply-flow__capability">{capabilityLabels[capabilityDetail.capability] || capabilityLabels.manual}</span>
         </div>
 
         {step === 'prepare' && (
           <>
-            <p className="apply-flow__intro">Build the application pack here first. The employer website is only a fallback for this job; JobMap will not open it unless you choose to.</p>
+            <p className="apply-flow__intro">Build the application pack here first. Nothing is submitted and the employer website is never opened unless you choose “Send to extension”.</p>
             <div className="apply-flow__checks">
               <div><span>01</span><strong>Profile baseline</strong><small>{profile.fullName ? `Use ${profile.fullName} and ${profileSkills}.` : 'Add your profile details before tailoring the pack.'}</small></div>
               <div><span>02</span><strong>AI-assisted preparation</strong><small>JobMap can reuse approved profile facts and previously confirmed answers, but every draft remains editable.</small></div>
               <div><span>03</span><strong>Explicit approval</strong><small>Saving the pack queues it; it does not submit anything to the employer.</small></div>
+            </div>
+            <div className="apply-flow__capability-card">
+              <p className="results-kicker">Execution capability · before you build the pack</p>
+              <h3>{capabilityLabels[capabilityDetail.capability] || capabilityLabels.manual}</h3>
+              <p>{capabilityDetail.note}</p>
+              <small>
+                {capabilityDetail.domains.length ? `Allowed host: ${capabilityDetail.domains.join(', ')}` : 'No verified host yet'}
+                {capabilityDetail.supportedFields.length ? ` · Fills: ${capabilityDetail.supportedFields.map((field) => field.replace(/([A-Z])/g, ' $1').toLowerCase()).join(', ')}` : ''}
+                {capabilityDetail.health ? ` · Adapter health: ${capabilityDetail.health}` : ''}
+              </small>
             </div>
             <div className="apply-flow__actions">
               <button className="primary-action" type="button" onClick={() => setStep('review')}>Build application pack</button>
@@ -233,6 +411,39 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
               <label><span>Cover note</span><textarea value={visiblePack.coverNote} onChange={updatePack('coverNote')} rows="5" /></label>
               <label><span>Screening answers</span><textarea value={visiblePack.screeningAnswers} onChange={updatePack('screeningAnswers')} rows="4" placeholder="Answer employer questions here, or leave blank until asked." /></label>
             </div>
+
+            {questionStatus === 'loading' && <p className="apply-flow__autofill-message" role="status">Loading the employer form’s questions…</p>}
+            {questionStatus === 'unavailable' && <p className="apply-flow__autofill-message">Could not read this form’s questions. Review the employer page when you open it.</p>}
+            {questionStatus === 'loaded' && (
+              <div className="apply-flow__questions">
+                <div><p className="results-kicker">Employer form review · {employerQuestions.length} question{employerQuestions.length === 1 ? '' : 's'}</p><h3>These are the questions on the real form.</h3><p>Approving this pack means these answers are for <strong>this</strong> form. File uploads (CV) are attached by you on the employer page.</p></div>
+                <div className="apply-flow__questions-list">
+                  {employerQuestions.map((question) => {
+                    const isText = questionInputTypes.has(question.type);
+                    const isSelect = question.type === 'select' || question.type === 'multi_select';
+                    const isBoolean = question.type === 'boolean';
+                    const isFile = question.type === 'file';
+                    return (
+                      <label className="apply-flow__question" key={question.key}>
+                        <span>{question.label}{question.required ? ' · required' : ''} <em>({questionTypeLabels[question.type] || questionTypeLabels.unknown})</em></span>
+                        {isFile
+                          ? <small>Attach your CV on the employer form — JobMap never uploads files.</small>
+                          : isSelect
+                            ? <select value={questionAnswers[question.key] || ''} onChange={updateQuestionAnswer(question.key)}><option value="">{question.required ? 'Choose an answer' : 'Optional — choose an answer'}</option>{question.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                            : isBoolean
+                              ? <select value={questionAnswers[question.key] || ''} onChange={updateQuestionAnswer(question.key)}><option value="">Choose…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                              : isText
+                                ? (question.type === 'multi_line_text' || question.type === 'textarea'
+                                  ? <textarea rows="3" value={questionAnswers[question.key] || ''} onChange={updateQuestionAnswer(question.key)} placeholder={question.required ? 'Required on the form' : 'Optional'} />
+                                  : <input value={questionAnswers[question.key] || ''} onChange={updateQuestionAnswer(question.key)} placeholder={question.required ? 'Required on the form' : 'Optional'} />)
+                                : <input value={questionAnswers[question.key] || ''} onChange={updateQuestionAnswer(question.key)} placeholder="Answer on the form" />}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="apply-flow__autofill">
               <div><p className="results-kicker">Source-backed autofill map</p><h3>Fill facts, pause on risk.</h3><p>Known profile and CV facts are ready for autofill. Generated, sensitive, legal, and unknown fields remain review-gated.</p></div>
               <div className="apply-flow__autofill-list">{autofillSuggestions.map((suggestion) => <div className="apply-flow__autofill-row" key={suggestion.fieldId}><span><strong>{suggestion.label}</strong><small>{suggestion.source} · {suggestion.status}</small></span><em>{suggestion.blocked ? 'User only' : suggestion.value || 'Needs input'}</em></div>)}</div>
@@ -261,16 +472,24 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             <p className="apply-flow__intro">Your pack is saved in JobMap and ready for the next execution layer. This job has not been submitted.</p>
             <div className="apply-flow__draft">
               <DraftBlock label="Pack status">{saved ? 'Ready for user-approved execution' : 'Saved locally'}</DraftBlock>
-              <DraftBlock label="Execution route">{capabilityLabels[capability] || capabilityLabels.manual}</DraftBlock>
-              <DraftBlock label="Approved CV">{cvDocuments.find((document) => document.id === pack.cvDocumentId)?.file_name || 'No private CV selected'}</DraftBlock>
+              <DraftBlock label="Execution route">{capabilityLabels[capabilityDetail.capability] || capabilityLabels.manual}</DraftBlock>
+              <DraftBlock label="Route detail">{capabilityDetail.note}</DraftBlock>
+              <DraftBlock label="Approved CV">{cvDocuments.find((document) => document.id === pack.cvDocumentId)?.file_name || 'No private CV selected — attach your file on the employer form.'}</DraftBlock>
               <DraftBlock label="Autofill bundle">{visiblePack.autofillBundle ? `${visiblePack.autofillBundle.fields.length} safe fields ready; ${visiblePack.autofillBundle.requiresReviewFieldIds.length} require review.` : 'Created when this pack is saved.'}</DraftBlock>
+              <DraftBlock label="Employer questions">{employerQuestions.length ? `${employerQuestions.length} question${employerQuestions.length === 1 ? '' : 's'} from the real form included in this pack.` : 'Form questions not yet ingested for this job.'}</DraftBlock>
               <DraftBlock label="Answer memory">{Object.keys(learnedAnswers).length ? 'Previously confirmed answers are available for future review.' : 'No answers have been remembered yet.'}</DraftBlock>
-              <DraftBlock label="Next safe action">{capability === 'api' ? 'Confirm the in-site submission request.' : 'Keep this pack queued while the approved adapter or browser extension is built.'}</DraftBlock>
+              <DraftBlock label="Next safe action">{capabilityDetail.capability === 'extension' ? 'Send the pack to the extension; it opens the employer form and fills safe fields.' : 'Keep this pack queued while the approved adapter or browser extension is built.'}</DraftBlock>
             </div>
             <div className="apply-flow__actions">
               <button className="primary-action" type="button" onClick={onClose}>Return to JobMap</button>
+              {isGreenhouseJob && (
+                <button className="primary-action apply-flow__adapter-btn" type="button" onClick={submitViaAdapter}>
+                  Submit via Greenhouse adapter
+                </button>
+              )}
               <button className="secondary-action" type="button" onClick={sendToExtension}>Send to extension</button>
               <a className="secondary-action" href={job.applyUrl} target="_blank" rel="noopener noreferrer">Continue manually ↗</a>
+              {adapterMessage && <p className="apply-flow__autofill-message apply-flow__autofill-message--adapter" role="status">{adapterMessage}</p>}
               {extensionMessage && <p className="apply-flow__autofill-message" role="status">{extensionMessage}</p>}
             </div>
           </>
@@ -280,4 +499,4 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       </div>
     </section>
   );
-}
+}

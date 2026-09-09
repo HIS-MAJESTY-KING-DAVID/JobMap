@@ -110,19 +110,80 @@ export function buildAutofillSuggestions({ fields = [], profile = {}, job = null
   });
 }
 
-export function createAutofillBundle({ suggestions = [], job, cvDocumentId = '', origin = window.location.origin } = {}) {
+// ---------------------------------------------------------------------------
+// Session key — generated once per page load, stored in sessionStorage.
+// Used to sign bundles so expired or cross-session replays are rejected.
+// ---------------------------------------------------------------------------
+
+function getOrCreateSessionKey() {
+  const stored = sessionStorage.getItem('jobmap.handoffKey');
+  if (stored) return stored;
+  const key = Array.from(crypto.getRandomValues(new Uint8Array(32))).map((b) => b.toString(16).padStart(2, '0')).join('');
+  try { sessionStorage.setItem('jobmap.handoffKey', key); } catch { /* storage unavailable */ }
+  return key;
+}
+
+/**
+ * Compute a simple HMAC-like signature for a bundle.
+ * Uses SubtleCrypto when available; falls back to a deterministic hash string
+ * so bundle creation never throws.
+ *
+ * @param {string} data  - String to sign.
+ * @param {string} key   - Session key hex string.
+ * @returns {Promise<string>}
+ */
+async function signBundle(data, key) {
+  try {
+    const enc = new TextEncoder();
+    const cryptoKey = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data));
+    return Array.from(new Uint8Array(sigBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // SubtleCrypto unavailable (insecure context) — use a plain concat.
+    return `unsigned:${data.length}:${key.slice(0, 8)}`;
+  }
+}
+
+export async function createAutofillBundle({ suggestions = [], job, cvDocumentId = '', origin = window.location.origin } = {}) {
+  const bundleId = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  const sessionKey = getOrCreateSessionKey();
+  const signatureData = `${bundleId}:${expiresAt}:${job?.id || ''}`;
+  const hmacSignature = await signBundle(signatureData, sessionKey);
+
   return {
     version: 1,
-    bundleId: crypto.randomUUID(),
+    bundleId,
     createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    expiresAt,
     origin,
+    allowedOrigin: origin,
     jobId: job?.id || null,
+    jobTitle: job?.title || null,
+    applyUrl: job?.applyUrl || null,
     cvDocumentId,
+    sessionKey,   // Included so the extension can verify the HMAC without a shared backend secret.
+    hmacSignature,
+    revoked: false,
     fields: suggestions.filter((suggestion) => suggestion.status === 'autofill').map(({ fieldId, value, classification, source }) => ({ fieldId, value, classification, source })),
     blockedFieldIds: suggestions.filter((suggestion) => suggestion.blocked).map(({ fieldId }) => fieldId),
     requiresReviewFieldIds: suggestions.filter((suggestion) => suggestion.requiresConfirmation || suggestion.status === 'needs_input').map(({ fieldId }) => fieldId),
   };
+}
+
+/**
+ * Revoke a live autofill bundle by posting a JOBMAP_REVOKE message.
+ * The extension's background service worker listens for this and clears
+ * its session storage, preventing any future fill from the same bundle.
+ *
+ * @param {string} bundleId
+ */
+export function revokeAutofillBundle(bundleId) {
+  try {
+    window.postMessage({ type: 'JOBMAP_REVOKE', payload: { bundleId } }, window.location.origin);
+  } catch {
+    // postMessage unavailable — no-op.
+  }
 }
 
 export const autofillFieldPolicies = FIELD_POLICIES;
