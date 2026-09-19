@@ -1,69 +1,69 @@
 {
-  "generatedAt": "2026-09-18T20:58:00.891Z",
-  "jobs": 2275,
+  "generatedAt": "2026-09-19T04:43:27.439Z",
+  "jobs": 2266,
   "sources": [
     {
       "id": "fne-cameroon",
       "label": "FNE — Fonds National de l'Emploi",
-      "status": "ok",
-      "fetched": 12,
-      "durationMs": 46357
+      "status": "error",
+      "error": "Timed out fetching https://emploi.fnecm.org/offres?par_page=12&page=1",
+      "durationMs": 15035
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 668,
-      "durationMs": 509
+      "fetched": 667,
+      "durationMs": 565
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
       "status": "error",
       "error": "HTTP 406",
-      "durationMs": 1686
+      "durationMs": 1846
     },
     {
       "id": "weworkremotely-global-rss",
       "label": "We Work Remotely RSS — Global",
       "status": "ok",
       "fetched": 84,
-      "durationMs": 914
+      "durationMs": 814
     },
     {
       "id": "jobicy-api",
       "label": "Jobicy Remote Jobs API",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 191
+      "durationMs": 217
     },
     {
       "id": "remotive-api",
       "label": "Remotive Remote Jobs API",
       "status": "ok",
       "fetched": 16,
-      "durationMs": 144
+      "durationMs": 161
     },
     {
       "id": "remoteok-api",
       "label": "Remote OK public API",
-      "status": "error",
-      "error": "This operation was aborted",
-      "durationMs": 21504
+      "status": "ok",
+      "fetched": 99,
+      "durationMs": 705
     },
     {
       "id": "hackernews-jobs",
       "label": "Hacker News Jobs",
       "status": "ok",
       "fetched": 20,
-      "durationMs": 2362
+      "durationMs": 331
     },
     {
       "id": "ashby-preply",
       "label": "Preply Careers (Ashby ATS)",
       "status": "ok",
       "fetched": 111,
-      "durationMs": 275
+      "durationMs": 206
     }
   ]
 }
