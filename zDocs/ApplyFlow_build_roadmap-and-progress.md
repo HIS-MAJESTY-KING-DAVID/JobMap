@@ -40,7 +40,7 @@ For a supported portal, a user can choose Manual Review or Submit-after-approval
 
 **Goal:** Approval covers exactly what will be used on the employer form.
 
-- [ ] Carry approved text/select/boolean answers from the Greenhouse question review into the handoff bundle.
+- [x] Carry approved non-sensitive text/select/boolean answers from the Greenhouse question review into the handoff bundle.
 - [ ] Map only explicitly approved, non-sensitive answers to the live form; keep legal, demographic, compensation, work-authorization, and file fields user-controlled.
 - [ ] Store question schema, answers, approvals, and adapter version in the application audit record.
 - [ ] Generate editable, versioned, job-tailored resumes and cover letters with provenance for every claim.

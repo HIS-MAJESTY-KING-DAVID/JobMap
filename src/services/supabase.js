@@ -141,7 +141,9 @@ function applicationToRow(application, userId) {
     status: application.status || 'draft',
     application_mode: application.executionRoute || 'manual_fallback',
     cover_note: pack.coverNote || null,
-    screening_answers: pack.screeningAnswers ? { text: pack.screeningAnswers } : null,
+    screening_answers: pack.screeningAnswers || pack.questionAnswers || pack.employerQuestions
+      ? { text: pack.screeningAnswers || '', answers: pack.questionAnswers || {}, questions: pack.employerQuestions || [] }
+      : null,
     autofill_bundle: bundle,
     autofill_state: bundle?.blockedFieldIds?.length ? 'blocked' : bundle?.requiresReviewFieldIds?.length ? 'needs_review' : 'ready_for_handoff',
     eligibility: job.remoteEligibility ? { remoteEligibility: job.remoteEligibility, eligibleCountries: job.eligibleCountries || [] } : null,
@@ -164,6 +166,8 @@ function rowToApplication(row) {
   const pack = {
     coverNote: row.cover_note || '',
     screeningAnswers: row.screening_answers?.text || '',
+    questionAnswers: row.screening_answers?.answers || {},
+    employerQuestions: row.screening_answers?.questions || [],
     cvDocumentId: row.cv_document_id || '',
     autofillBundle: row.autofill_bundle || null,
   };

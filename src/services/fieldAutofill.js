@@ -110,6 +110,41 @@ export function buildAutofillSuggestions({ fields = [], profile = {}, job = null
   });
 }
 
+/**
+ * Select the employer-question answers that may travel in an extension bundle.
+ * The user entered these answers while reviewing a specific form. Even so,
+ * sensitive, legal, blocked, unknown, and file questions stay on the employer
+ * page: their values never leave the JobMap application pack.
+ */
+export function buildApprovedEmployerAnswers({ questions = [], answers = {} } = {}) {
+  const fillable = [];
+  const userControlled = [];
+
+  questions.forEach((question) => {
+    const value = stringValue(answers[question.key]);
+    if (!value) return;
+    const { classification } = classifyApplicationField(question);
+    const fieldKey = question.formKey || question.key;
+    const blocked = question.type === 'file' || ['sensitive', 'legal_attestation', 'blocked', 'unknown'].includes(classification);
+    const record = {
+      key: question.key,
+      fieldKey,
+      label: question.label,
+      type: question.type,
+      value,
+      classification,
+    };
+
+    if (blocked) {
+      userControlled.push({ ...record, reason: question.type === 'file' ? 'file_upload' : classification });
+    } else {
+      fillable.push(record);
+    }
+  });
+
+  return { fillable, userControlled };
+}
+
 // ---------------------------------------------------------------------------
 // Session key — generated once per page load, stored in sessionStorage.
 // Used to sign bundles so expired or cross-session replays are rejected.

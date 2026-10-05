@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { getLearnedApplicationAnswers, rememberApplicationAnswer } from '../services/applicationAnswers.js';
-import { buildAutofillSuggestions, createAutofillBundle } from '../services/fieldAutofill.js';
+import { buildApprovedEmployerAnswers, buildAutofillSuggestions, createAutofillBundle } from '../services/fieldAutofill.js';
 import { getApplicationReadiness } from '../services/recommendations.js';
 import { capabilityLabels, getCapabilityDetail } from '../services/capabilityRegistry.js';
 import { detectAdapter, fetchGreenhouseQuestions, questionTypeLabels, submitGreenhouseApplication } from '../services/atsAdapters.js';
@@ -44,6 +44,15 @@ function withCoverNote(bundle, pack) {
   const note = String(pack.coverNote || '').trim();
   if (!note || bundle.fields.some((field) => field.fieldId === 'coverNote')) return bundle;
   return { ...bundle, fields: [...bundle.fields, { fieldId: 'coverNote', value: note, classification: 'generated_draft', source: 'pack' }] };
+}
+
+function withEmployerAnswers(bundle, questions, answers) {
+  const approved = buildApprovedEmployerAnswers({ questions, answers });
+  return {
+    ...bundle,
+    employerAnswers: approved.fillable,
+    userControlledEmployerAnswerKeys: approved.userControlled.map((answer) => answer.key),
+  };
 }
 
 export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocuments = [], session, onClose, onSaveApplication }) {
@@ -163,6 +172,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             filled: filledCount,
             skipped: result.skipped || 0,
             blockedRequired: blockedCount,
+            employerAnswersFilled: result.employerAnswersFilled || 0,
             bundleId: result.bundleId || null,
             rejectedFields: result.rejectedFields || [],
             cvUserAction: Boolean(result.cv?.userAction),
@@ -269,9 +279,10 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
   const sendToExtension = async () => {
     let bundle = visiblePack.autofillBundle;
     if (!bundle) {
-      bundle = withCoverNote(await createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId }), visiblePack);
-      setPack((current) => ({ ...current, autofillBundle: bundle }));
+      bundle = await createAutofillBundle({ suggestions: autofillSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
     }
+    bundle = withEmployerAnswers(withCoverNote(bundle, visiblePack), employerQuestions, questionAnswers);
+    setPack((current) => ({ ...current, autofillBundle: bundle }));
     sentBundleIdRef.current = bundle.bundleId;
     handledBundleIdRef.current = null;
     window.postMessage({ type: 'JOBMAP_AUTOFILL_HANDOFF', payload: { ...bundle, sentAt: new Date().toISOString() } }, window.location.origin);
@@ -346,7 +357,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     });
   };
   const toggleRemember = (key) => (event) => setRememberAnswers((current) => ({ ...current, [key]: event.target.checked }));
-  const savePack = (status) => {
+  const savePack = async (status) => {
     let answerMemory = learnedAnswers;
     learnedFields.forEach(({ key }) => {
       if (rememberAnswers[key] && pack.learnedAnswers[key]?.trim()) {
@@ -357,17 +368,19 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
     });
     setLearnedAnswers(answerMemory);
     const finalSuggestions = buildAutofillSuggestions({ fields: autofillSuggestions.map(({ fieldId, label, type }) => ({ id: fieldId, label, type })), profile, job, learnedAnswers: answerMemory, unassistedMode: true });
-    const autofillBundle = withCoverNote(visiblePack.autofillBundle || createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId }), visiblePack);
+    const baseBundle = visiblePack.autofillBundle || await createAutofillBundle({ suggestions: finalSuggestions, job, cvDocumentId: visiblePack.cvDocumentId });
+    const autofillBundle = withEmployerAnswers(withCoverNote(baseBundle, visiblePack), employerQuestions, questionAnswers);
     const nextStatus = status === 'ready_for_approval' && !readiness.canApprove ? 'needs_user' : status;
+    setPack((current) => ({ ...current, autofillBundle }));
     onSaveApplication?.({
       id: `application-${job.id}`,
       jobId: job.id,
       job,
-      pack: { ...visiblePack, autofillBundle },
+      pack: { ...visiblePack, autofillBundle, employerQuestions, questionAnswers },
       autofillBundle,
       status: nextStatus,
       executionRoute: capabilityDetail.capability,
-      employerQuestions: employerQuestions.map(({ key, label, type, required }) => ({ key, label, type, required })),
+      employerQuestions: employerQuestions.map(({ key, formKey, label, type, required }) => ({ key, formKey, label, type, required })),
       questionAnswers,
       learnedAnswerKeys: Object.keys(answerMemory),
       createdAt: new Date().toISOString(),
@@ -439,7 +452,7 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
             {questionStatus === 'unavailable' && <p className="apply-flow__autofill-message">Could not read this form’s questions. Review the employer page when you open it.</p>}
             {questionStatus === 'loaded' && (
               <div className="apply-flow__questions">
-                <div><p className="results-kicker">Employer form review · {employerQuestions.length} question{employerQuestions.length === 1 ? '' : 's'}</p><h3>These are the questions on the real form.</h3><p>Approving this pack means these answers are for <strong>this</strong> form. File uploads (CV) are attached by you on the employer page.</p></div>
+                <div><p className="results-kicker">Employer form review · {employerQuestions.length} question{employerQuestions.length === 1 ? '' : 's'}</p><h3>These are the questions on the real form.</h3><p>Approved non-sensitive answers are carried to matching form fields. Sensitive, legal, unknown, and file fields stay under your direct control on the employer page.</p></div>
                 <div className="apply-flow__questions-list">
                   {employerQuestions.map((question) => {
                     const isText = questionInputTypes.has(question.type);

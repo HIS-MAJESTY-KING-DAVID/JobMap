@@ -259,7 +259,12 @@ async function fill(bundle) {
   }
 
   const approvedByKey = new Map(bundle.fields.filter((field) => SAFE_FIELDS.has(field.fieldId)).map((field) => [field.fieldId, field.value]));
+  // These answers were entered and approved for this exact employer form.
+  // The pack creator excludes sensitive, legal, unknown, and file questions;
+  // this second check happens after the live control's safety check below.
+  const approvedEmployerAnswers = new Map((bundle.employerAnswers || []).map((answer) => [answer.fieldKey, answer]));
   let filled = 0;
+  let employerAnswersFilled = 0;
   let matched = 0;
   const rejectedFields = [];
   const blockedRequired = [];
@@ -288,6 +293,20 @@ async function fill(bundle) {
       rejectedFields.push({ name: controlName(element) || 'sensitive', key, reason: 'sensitive', required });
       if (required) blockedRequired.push({ name: controlName(element) || 'sensitive', key, reason: 'sensitive' });
       highlight(element, 'blocked');
+      return;
+    }
+
+    const employerAnswer = approvedEmployerAnswers.get(controlName(element));
+    if (employerAnswer) {
+      matched += 1;
+      if (setElementValue(element, employerAnswer.value)) {
+        filled += 1;
+        employerAnswersFilled += 1;
+        highlight(element, 'filled');
+      } else {
+        rejectedFields.push({ name: controlName(element) || employerAnswer.fieldKey, key: employerAnswer.key, reason: 'no_matching_option', required });
+        if (required) blockedRequired.push({ name: controlName(element) || employerAnswer.fieldKey, key: employerAnswer.key, reason: 'no_matching_option' });
+      }
       return;
     }
 
@@ -330,6 +349,7 @@ async function fill(bundle) {
     bundleId: bundle.bundleId,
     jobId: bundle.jobId,
     filled,
+    employerAnswersFilled,
     skipped: Math.max(0, matched - filled),
     rejectedFields,
     blockedRequired,

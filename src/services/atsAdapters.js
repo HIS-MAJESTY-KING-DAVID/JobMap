@@ -251,6 +251,9 @@ export function normalizeGreenhouseQuestions(questions = []) {
     }
     flat.push({
       key: fullKey,
+      // `key` is unique within the reviewed question tree; `formKey` is the
+      // control name the extension matches on the live Greenhouse form.
+      formKey: question.name || question.id || key,
       label: fullLabel,
       type: question.type || 'unknown',
       required: Boolean(question.required),

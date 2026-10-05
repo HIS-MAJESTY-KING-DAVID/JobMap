@@ -27,6 +27,7 @@ const questions = normalizeGreenhouseQuestions([
 ]);
 assert.equal(questions.length, 5);
 assert.equal(questions[0].key, 'first_name');
+assert.equal(questions[0].formKey, 'first_name');
 assert.equal(questions[0].required, true);
 assert.equal(questions[3].options.length, 2);
 assert.equal(questions[3].options[1].value, 'douala');

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 // Node has no sessionStorage; the bundle session key lives there in the browser.
 globalThis.sessionStorage = { getItem: () => null, setItem: () => {} };
 
-import { buildAutofillSuggestions, createAutofillBundle } from '../src/services/fieldAutofill.js';
+import { buildApprovedEmployerAnswers, buildAutofillSuggestions, createAutofillBundle } from '../src/services/fieldAutofill.js';
 
 const profile = {
   fullName: 'Kollo David',
@@ -54,4 +54,19 @@ assert.equal(bundle.fields.find((item) => item.fieldId === 'fullName').value, 'K
 assert.equal(bundle.fields.find((item) => item.fieldId === 'targetRole').value, 'IT Specialist');
 assert.equal(bundle.origin, 'https://jobmap-ten.vercel.app');
 assert.equal(bundle.cvDocumentId, 'cv-1');
+
+const approvedEmployerAnswers = buildApprovedEmployerAnswers({
+  questions: [
+    { key: 'question.motivation', formKey: 'question_100', label: 'Why do you want this role?', type: 'textarea' },
+    { key: 'question.authorization', formKey: 'question_101', label: 'Are you authorized to work?', type: 'boolean' },
+    { key: 'question.resume', formKey: 'question_102', label: 'Resume', type: 'file' },
+  ],
+  answers: {
+    'question.motivation': 'The role fits my verified background.',
+    'question.authorization': 'Yes',
+    'question.resume': 'cv.pdf',
+  },
+});
+assert.deepEqual(approvedEmployerAnswers.fillable.map((answer) => answer.fieldKey), ['question_100']);
+assert.deepEqual(approvedEmployerAnswers.userControlled.map((answer) => answer.fieldKey), ['question_101', 'question_102']);
 console.log('ApplyFlow autofill smoke test passed.');
