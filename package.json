@@ -11,7 +11,7 @@
     "sync:supabase-jobs": "node scripts/sync-supabase-jobs.js",
     "purge:deletions": "node scripts/purge-deleted-users.js",
     "test:smoke": "node scripts/smoke-test.js",
-    "test:applyflow": "node scripts/autofill-smoke-test.js && node scripts/applyflow-bridge-smoke-test.js",
+    "test:applyflow": "node scripts/autofill-smoke-test.js && node scripts/applyflow-bridge-smoke-test.js && node scripts/application-storage-smoke-test.js",
     "test:production": "node scripts/production-checklist.js",
     "test:e2e": "playwright test",
     "preview": "vite preview"

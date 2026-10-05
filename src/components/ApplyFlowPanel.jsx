@@ -4,6 +4,7 @@ import { buildAutofillSuggestions, createAutofillBundle } from '../services/fiel
 import { getApplicationReadiness } from '../services/recommendations.js';
 import { capabilityLabels, getCapabilityDetail } from '../services/capabilityRegistry.js';
 import { detectAdapter, fetchGreenhouseQuestions, questionTypeLabels, submitGreenhouseApplication } from '../services/atsAdapters.js';
+import { getExtensionOutcome } from '../services/applicationExecution.js';
 
 const eligibilityLabels = {
   'cameroon-eligible': 'Cameroon eligible',
@@ -91,28 +92,50 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
 
   useEffect(() => {
     const handleExtensionResult = (event) => {
-      if (event.source !== window || event.origin !== window.location.origin || event.data?.type !== 'JOBMAP_AUTOFILL_RESULT') return;
+      if (event.source !== window || event.origin !== window.location.origin) return;
+      if (event.data?.type === 'JOBMAP_AUTOFILL_ACCEPTED') {
+        const accepted = event.data.payload || {};
+        if (!sentBundleIdRef.current || accepted.bundleId !== sentBundleIdRef.current || handledBundleIdRef.current === accepted.bundleId) return;
+        setExtensionMessage('Employer form opened. Filling approved safe fields…');
+        onSaveApplication?.({
+          id: `application-${job.id}`,
+          jobId: job.id,
+          job,
+          pack: visiblePackRef.current,
+          status: 'filling',
+          executionRoute: 'extension',
+          executionState: 'filling',
+          events: [{ id: `event-fill-${Date.now()}`, type: 'extension_filling', createdAt: new Date().toISOString(), metadata: { bundleId: accepted.bundleId } }],
+          createdAt: new Date().toISOString(),
+        });
+        return;
+      }
+      if (event.data?.type !== 'JOBMAP_AUTOFILL_RESULT') return;
       const result = event.data.payload || {};
       if (sentBundleIdRef.current && result.bundleId && result.bundleId !== sentBundleIdRef.current) return;
       handledBundleIdRef.current = result.bundleId || handledBundleIdRef.current;
       const filledCount = result.filled || 0;
       const blockedCount = result.blockedRequired?.length || 0;
 
-      if (result.ok === false || result.failureReason) {
+      const outcome = getExtensionOutcome(result);
+
+      if (outcome.status !== 'needs_user') {
         const failureReason = result.failureReason || 'network';
-        setExtensionMessage(`Extension could not fill this form: ${result.reason || failureReason.replaceAll('_', ' ')}. Finish it manually — your pack is safe.`);
+        setExtensionMessage(outcome.status === 'cancelled'
+          ? 'This extension handoff was cancelled. Your application pack remains saved in JobMap.'
+          : `Extension could not fill this form: ${result.reason || failureReason.replaceAll('_', ' ')}. Finish it manually — your pack is safe.`);
         onSaveApplication?.({
           id: `application-${job.id}`,
           jobId: job.id,
           job,
           pack: visiblePackRef.current,
-          status: 'failed',
+          status: outcome.status,
           failureReason,
           executionRoute: 'extension',
-          executionState: 'extension_failed',
+          executionState: outcome.executionState,
           events: [{
             id: `event-ext-fail-${Date.now()}`,
-            type: 'extension_failed',
+            type: outcome.eventType,
             createdAt: new Date().toISOString(),
             metadata: { bundleId: result.bundleId || null, reason: result.reason || '', failureReason },
           }],
@@ -130,11 +153,11 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
         pack: visiblePackRef.current,
         status: 'needs_user',
         executionRoute: 'extension',
-        executionState: 'extension_filled',
-        needsUserReason: blockedCount ? 'Required fields remain on the employer form.' : 'Review the form and submit it yourself.',
+        executionState: outcome.executionState,
+        needsUserReason: outcome.needsUserReason,
         events: [{
           id: `event-ext-${Date.now()}`,
-          type: 'extension_fill',
+          type: outcome.eventType,
           createdAt: new Date().toISOString(),
           metadata: {
             filled: filledCount,
@@ -499,4 +522,4 @@ export default function ApplyFlowPanel({ job, profile: providedProfile, cvDocume
       </div>
     </section>
   );
-}
+}

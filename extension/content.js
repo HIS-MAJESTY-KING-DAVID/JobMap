@@ -166,6 +166,33 @@ function highlight(element, kind) {
 }
 
 async function fill(bundle) {
+  // --- Landing-page resolver (aggregator sources) ---------------------------
+  // This page's host must be on the fill allowlist before anything is written;
+  // aggregator listing pages are never written to. When the SPA hands us such
+  // a page, look through it for the employer's real application link, report
+  // it back as `resolvedApplyUrl`, and let the background worker re-route.
+  const landingAdapter = window.JobMapAdapters?.current?.() || null;
+  if (!landingAdapter) {
+    const resolved = window.JobMapAdapters?.resolveApplyUrl?.() || null;
+    return {
+      ok: false,
+      bundleId: bundle?.bundleId || null,
+      filled: 0,
+      skipped: 0,
+      rejectedFields: [],
+      needsUser: true,
+      resolvedApplyUrl: resolved,
+      // `intermediate: true` tells the background worker this is not a final
+      // receipt — it must keep the relay open while it follows the link and
+      // wait for the real receipt from the employer form.
+      intermediate: resolved,
+      reason: resolved
+        ? 'This is a job listing page, not the employer form. JobMap found the real application link and is following it.'
+        : 'This page does not link to an employer application form JobMap can follow. Finish the application from this page yourself.',
+      failureReason: resolved ? null : 'layout_change',
+    };
+  }
+
   // --- Split checks --------------------------------------------------------
   // The signing JobMap origin must be allowlisted (authenticates the message).
   if (!bundle || bundle.version !== 1 || !bundle.jobId || bundle.revoked === true
@@ -184,20 +211,10 @@ async function fill(bundle) {
     };
   }
 
-  // This page's host must be on the fill allowlist (an adapter must match).
-  const adapter = window.JobMapAdapters?.current?.() || null;
-  if (!adapter) {
-    return {
-      ok: false,
-      bundleId: bundle.bundleId,
-      filled: 0,
-      skipped: 0,
-      rejectedFields: [],
-      needsUser: true,
-      reason: 'This employer page is not on the JobMap fill allowlist. No fields were touched.',
-      failureReason: 'layout_change',
-    };
-  }
+  // The fill allowlist was already verified above (landing pages returned
+  // early); the current adapter is non-null from here on.
+  const adapter = window.JobMapAdapters.current();
+  void adapter; // reserved for adapter-specific field coercions.
 
   const signatureValid = await verifyBundleSignature(bundle);
   if (!signatureValid) {
@@ -328,7 +345,9 @@ async function fill(bundle) {
 
   lastFilledBundleId = bundle.bundleId;
   lastResult = result;
-  chrome.storage.session.set({ jobmapLastResult: { ...result, at: new Date().toISOString() } }, () => {});
+  // storage.session is blocked to content scripts by default in MV3; the
+  // background worker already persists the receipt. This is best-effort only.
+  try { chrome.storage.session.set({ jobmapLastResult: { ...result, at: new Date().toISOString() } }, () => { void chrome.runtime.lastError; }); } catch { /* unavailable */ }
   return result;
 }
 
@@ -346,9 +365,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return;
     }
     fill(bundle).then((result) => {
-      chrome.runtime.sendMessage({ type: FILL_RESULT_TYPE, payload: result }, () => {
-        void chrome.runtime.lastError;
-      });
+      // Intermediates (landing-page redirects) go to sendResponse only — the
+      // worker routes on them without ending the fill session, and the real
+      // receipt will follow from the employer form.
+      if (!result.intermediate) {
+        chrome.runtime.sendMessage({ type: FILL_RESULT_TYPE, payload: result }, () => {
+          void chrome.runtime.lastError;
+        });
+      }
       sendResponse({ ok: result.ok !== false, result });
     });
     return true; // async response

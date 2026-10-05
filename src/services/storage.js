@@ -97,8 +97,18 @@ function makeEvent(type, metadata = {}) {
 }
 
 export function saveApplication(application) {
-  const current = getApplications().filter((item) => item.id !== application.id && item.jobId !== application.jobId);
-  const next = [{ ...application, events: [...(application.events || []), makeEvent('pack_saved', { status: application.status || 'draft' })], updatedAt: new Date().toISOString() }, ...current];
+  const saved = getApplications();
+  const existing = saved.find((item) => item.id === application.id || item.jobId === application.jobId);
+  const current = saved.filter((item) => item.id !== application.id && item.jobId !== application.jobId);
+  const mergedEvents = [...(existing?.events || []), ...(application.events || [])];
+  const events = [...mergedEvents, makeEvent('pack_saved', { status: application.status || 'draft' })];
+  const next = [{
+    ...existing,
+    ...application,
+    createdAt: existing?.createdAt || application.createdAt || new Date().toISOString(),
+    events,
+    updatedAt: new Date().toISOString(),
+  }, ...current];
   write(APPLICATIONS_KEY, next);
   return next;
 }

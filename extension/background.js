@@ -20,6 +20,7 @@
 const HANDOFF_TYPE = 'JOBMAP_AUTOFILL_HANDOFF';
 const FILL_RESULT_TYPE = 'JOBMAP_FILL_RESULT';
 const RESULT_TYPE = 'JOBMAP_AUTOFILL_RESULT';
+const ACCEPTED_TYPE = 'JOBMAP_AUTOFILL_ACCEPTED';
 const REVOKE_TYPE = 'JOBMAP_REVOKE';
 const CLEAR_FILL_TYPE = 'JOBMAP_CLEAR_FILL';
 
@@ -30,10 +31,15 @@ const JOBMAP_ORIGINS = new Set([
 ]);
 
 const FILL_WAIT_MS = 45_000;
+// Aggregator listing pages resolve to the employer's real form; cap how many
+// redirects we follow so a resolver loop can never bounce tabs forever.
+const MAX_LANDING_HOPS = 3;
 
-// The JobMap tab awaiting a receipt, and the employer tab being filled.
+// The JobMap tab awaiting a receipt, the employer tab being filled, and every
+// tab opened while following an apply-link chain (all cleared on revoke).
 let relayTabId = null;
 let fillTabId = null;
+let fillChainTabIds = [];
 let fillTimer = null;
 
 function sendToTab(tabId, message) {
@@ -67,7 +73,20 @@ function finishFill(result) {
   fillTabId = null;
 }
 
+function armFillTimer(bundleId) {
+  if (fillTimer) clearTimeout(fillTimer);
+  fillTimer = setTimeout(() => {
+    finishFill({
+      ok: false,
+      bundleId,
+      reason: 'The employer form did not answer. The extension may not be installed, or the page blocks automated filling.',
+      failureReason: 'extension_unreachable',
+    });
+  }, FILL_WAIT_MS);
+}
+
 async function openEmployerTab(applyUrl) {
+  try { new URL(applyUrl); } catch { return null; }
   const existing = await chrome.tabs.query({ url: applyUrl });
   if (existing?.length) {
     const tab = existing[0];
@@ -106,23 +125,66 @@ async function ensureContentScript(tabId) {
   }
 }
 
-async function deliverFill(tabId, bundle) {
+function isResolvedIntermediate(attempt) {
+  return Boolean(attempt?.response?.result?.resolvedApplyUrl);
+}
+
+/**
+ * The content script looked at an aggregator listing page and resolved the
+ * employer's real application URL. Open it and deliver the fill there; the
+ * destination may itself be a landing page, so recurse with a hop cap.
+ */
+async function followResolvedUrl(result, bundle, hop) {
+  if (hop >= MAX_LANDING_HOPS) {
+    finishFill({
+      ok: false,
+      bundleId: bundle.bundleId,
+      reason: 'The apply link kept leading to listing pages instead of an employer form. Open the posting and apply from there — your pack is saved in JobMap.',
+      failureReason: 'redirected_apply_link',
+    });
+    return true; // session ended with a typed receipt; no fallback needed
+  }
+  const nextTabId = await openEmployerTab(result.resolvedApplyUrl);
+  if (nextTabId == null) {
+    finishFill({
+      ok: false,
+      bundleId: bundle.bundleId,
+      reason: 'JobMap found the application link but could not open it. Apply from the posting page directly — your pack is saved.',
+      failureReason: 'network',
+    });
+    return true;
+  }
+  fillTabId = nextTabId;
+  fillChainTabIds.push(nextTabId);
+  await waitForTabComplete(nextTabId);
+  armFillTimer(bundle.bundleId); // the chain may outlive the first 45s window
+  return deliverFill(nextTabId, bundle, hop + 1);
+}
+
+async function deliverFill(tabId, bundle, hop = 0) {
   // 1. Direct message (content script already present).
   let attempt = await sendToTab(tabId, { type: 'JOBMAP_FILL', payload: bundle });
-  if (attempt.ok && attempt.response?.ok !== false) return true;
+  if (attempt.ok) {
+    if (isResolvedIntermediate(attempt)) return followResolvedUrl(attempt.response.result, bundle, hop);
+    return true; // the content script answered; its own FILL_RESULT is the final relay
+  }
 
   // 2. Inject the content scripts, then resend.
-  const injected = await ensureContentScript(tabId);
-  if (injected) {
+  if (await ensureContentScript(tabId)) {
     attempt = await sendToTab(tabId, { type: 'JOBMAP_FILL', payload: bundle });
-    if (attempt.ok && attempt.response?.ok !== false) return true;
+    if (attempt.ok) {
+      if (isResolvedIntermediate(attempt)) return followResolvedUrl(attempt.response.result, bundle, hop);
+      return true;
+    }
   }
 
   // 3. The tab predates the extension install — reload once and retry.
   try { await chrome.tabs.reload(tabId); } catch { /* tab closed */ }
   await waitForTabComplete(tabId);
   attempt = await sendToTab(tabId, { type: 'JOBMAP_FILL', payload: bundle });
-  return attempt.ok && attempt.response?.ok !== false;
+  if (!attempt.ok) return false; // never reached: honest extension_unreachable
+  if (isResolvedIntermediate(attempt)) return followResolvedUrl(attempt.response.result, bundle, hop);
+  return true;
 }
 
 async function handleHandoff(payload, sender) {
@@ -138,6 +200,7 @@ async function handleHandoff(payload, sender) {
   }
 
   relayTabId = sender.tab?.id ?? null;
+  fillChainTabIds = [];
   await chrome.storage.session.set({
     jobmapLastBundle: {
       bundleId: bundle.bundleId,
@@ -163,18 +226,17 @@ async function handleHandoff(payload, sender) {
     return { ok: false, reason: 'Could not open the employer application page.' };
   }
   fillTabId = tabId;
+  fillChainTabIds.push(tabId);
+  if (relayTabId != null) {
+    sendToTab(relayTabId, {
+      type: ACCEPTED_TYPE,
+      payload: { bundleId: bundle.bundleId, reason: 'Employer form opened; filling approved safe fields.' },
+    });
+  }
   await waitForTabComplete(tabId);
 
   // Report a typed failure if the employer form never answers.
-  if (fillTimer) clearTimeout(fillTimer);
-  fillTimer = setTimeout(() => {
-    finishFill({
-      ok: false,
-      bundleId: bundle.bundleId,
-      reason: 'The employer form did not answer. The extension may not be installed, or the page blocks automated filling.',
-      failureReason: 'extension_unreachable',
-    });
-  }, FILL_WAIT_MS);
+  armFillTimer(bundle.bundleId);
 
   const delivered = await deliverFill(tabId, bundle);
   if (!delivered && fillTimer) {
@@ -199,7 +261,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // async response
   }
 
-  // Employer content script reporting the fill receipt.
+  // Employer content script reporting the fill receipt. Intermediates
+  // (landing-page redirects) travel via the fill call's sendResponse instead,
+  // so anything arriving here is final and ends the session.
   if (message?.type === FILL_RESULT_TYPE) {
     const result = message.payload || {};
     const stored = { ...result, at: new Date().toISOString() };
@@ -223,10 +287,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.session.remove(['jobmapLastBundle', 'jobmapLastResult'], () => {
       sendResponse({ ok: true, revoked: message?.payload?.bundleId || true });
     });
-    if (fillTabId != null) {
-      sendToTab(fillTabId, { type: CLEAR_FILL_TYPE, payload: { bundleId: message?.payload?.bundleId || null } });
-      fillTabId = null;
-    }
+    // Clear fill state on the whole chain: the landing tab we opened first
+    // and every employer tab resolved from it.
+    [...new Set([fillTabId, ...fillChainTabIds])] .filter((tabId) => tabId != null).forEach((tabId) => {
+      sendToTab(tabId, { type: CLEAR_FILL_TYPE, payload: { bundleId: message?.payload?.bundleId || null } });
+    });
+    fillTabId = null;
+    fillChainTabIds = [];
     return true;
   }
-});
+});

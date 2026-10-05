@@ -19,9 +19,19 @@
 export const GREENHOUSE_DOMAINS = new Set([
   'boards.greenhouse.io',
   'job-boards.greenhouse.io',
+  'job-boards.eu.greenhouse.io',
 ]);
 
 export const STRIPE_GREENHOUSE_PATTERN = /^stripe\.com$/i;
+
+export const LEVER_DOMAINS = new Set([
+  'jobs.lever.co',
+  'jobs.eu.lever.co',
+]);
+
+export const ASHBY_DOMAINS = new Set([
+  'jobs.ashbyhq.com',
+]);
 
 export const GREENHOUSE_SAFE_FIELDS = ['first_name', 'last_name', 'email', 'phone', 'linkedin_url', 'website', 'cover_letter_body'];
 
@@ -32,7 +42,7 @@ export const GREENHOUSE_SAFE_FIELDS = ['first_name', 'last_name', 'email', 'phon
 /**
  * Given an apply URL, returns the adapter key or null.
  * @param {string} applyUrl
- * @returns {'greenhouse' | 'stripe-greenhouse' | null}
+ * @returns {'greenhouse' | 'stripe-greenhouse' | 'lever' | 'ashby' | null}
  */
 export function detectAdapter(applyUrl) {
   if (!applyUrl || applyUrl === '#') return null;
@@ -40,6 +50,8 @@ export function detectAdapter(applyUrl) {
     const { hostname, pathname } = new URL(applyUrl);
     if (GREENHOUSE_DOMAINS.has(hostname)) return 'greenhouse';
     if (STRIPE_GREENHOUSE_PATTERN.test(hostname) && pathname.startsWith('/jobs/')) return 'stripe-greenhouse';
+    if (LEVER_DOMAINS.has(hostname)) return 'lever';
+    if (ASHBY_DOMAINS.has(hostname)) return 'ashby';
   } catch {
     // Malformed URL — no adapter.
   }

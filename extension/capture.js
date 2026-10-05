@@ -19,6 +19,7 @@
 const HANDOFF_TYPE = 'JOBMAP_AUTOFILL_HANDOFF';
 const REVOKE_TYPE = 'JOBMAP_REVOKE';
 const RESULT_TYPE = 'JOBMAP_AUTOFILL_RESULT';
+const ACCEPTED_TYPE = 'JOBMAP_AUTOFILL_ACCEPTED';
 
 function postToPage(type, payload) {
   try {
@@ -47,7 +48,7 @@ window.addEventListener('message', (event) => {
 
 // Background -> SPA: fill receipts relayed from the employer tab.
 chrome.runtime.onMessage.addListener((message) => {
-  if (message?.type === RESULT_TYPE && message.payload) {
-    postToPage(RESULT_TYPE, message.payload);
+  if ((message?.type === RESULT_TYPE || message?.type === ACCEPTED_TYPE) && message.payload) {
+    postToPage(message.type, message.payload);
   }
 });
