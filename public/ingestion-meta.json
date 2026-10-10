@@ -1,69 +1,69 @@
 {
-  "generatedAt": "2026-10-09T22:43:18.104Z",
-  "jobs": 3574,
+  "generatedAt": "2026-10-10T06:00:09.700Z",
+  "jobs": 3583,
   "sources": [
     {
       "id": "fne-cameroon",
       "label": "FNE — Fonds National de l'Emploi",
       "status": "ok",
       "fetched": 12,
-      "durationMs": 45892
+      "durationMs": 20159
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 733,
-      "durationMs": 563
+      "fetched": 729,
+      "durationMs": 673
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
       "status": "error",
       "error": "HTTP 406",
-      "durationMs": 1832
+      "durationMs": 1787
     },
     {
       "id": "weworkremotely-global-rss",
       "label": "We Work Remotely RSS — Global",
       "status": "ok",
       "fetched": 89,
-      "durationMs": 503
+      "durationMs": 972
     },
     {
       "id": "jobicy-api",
       "label": "Jobicy Remote Jobs API",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 145
+      "durationMs": 237
     },
     {
       "id": "remotive-api",
       "label": "Remotive Remote Jobs API",
       "status": "ok",
       "fetched": 17,
-      "durationMs": 139
+      "durationMs": 164
     },
     {
       "id": "remoteok-api",
       "label": "Remote OK public API",
       "status": "ok",
       "fetched": 99,
-      "durationMs": 833
+      "durationMs": 698
     },
     {
       "id": "hackernews-jobs",
       "label": "Hacker News Jobs",
       "status": "ok",
       "fetched": 20,
-      "durationMs": 660
+      "durationMs": 2598
     },
     {
       "id": "ashby-preply",
       "label": "Preply Careers (Ashby ATS)",
       "status": "ok",
       "fetched": 128,
-      "durationMs": 128
+      "durationMs": 297
     }
   ]
 }
