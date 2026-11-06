@@ -1,69 +1,69 @@
 {
-  "generatedAt": "2026-11-06T06:56:41.536Z",
-  "jobs": 5238,
+  "generatedAt": "2026-11-06T19:29:06.676Z",
+  "jobs": 5262,
   "sources": [
     {
       "id": "fne-cameroon",
       "label": "FNE — Fonds National de l'Emploi",
-      "status": "ok",
-      "fetched": 12,
-      "durationMs": 46174
+      "status": "error",
+      "error": "Timed out fetching https://emploi.fnecm.org/offres?par_page=12&page=1",
+      "durationMs": 15039
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 768,
-      "durationMs": 507
+      "fetched": 765,
+      "durationMs": 682
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
       "status": "error",
       "error": "HTTP 406",
-      "durationMs": 1806
+      "durationMs": 1772
     },
     {
       "id": "weworkremotely-global-rss",
       "label": "We Work Remotely RSS — Global",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 1117
+      "durationMs": 1447
     },
     {
       "id": "jobicy-api",
       "label": "Jobicy Remote Jobs API",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 1056
+      "durationMs": 1022
     },
     {
       "id": "remotive-api",
       "label": "Remotive Remote Jobs API",
       "status": "ok",
-      "fetched": 10,
-      "durationMs": 146
+      "fetched": 12,
+      "durationMs": 158
     },
     {
       "id": "remoteok-api",
       "label": "Remote OK public API",
       "status": "ok",
       "fetched": 99,
-      "durationMs": 725
+      "durationMs": 829
     },
     {
       "id": "hackernews-jobs",
       "label": "Hacker News Jobs",
       "status": "ok",
       "fetched": 20,
-      "durationMs": 4495
+      "durationMs": 344
     },
     {
       "id": "ashby-preply",
       "label": "Preply Careers (Ashby ATS)",
       "status": "ok",
-      "fetched": 121,
-      "durationMs": 211
+      "fetched": 123,
+      "durationMs": 272
     }
   ]
 }
