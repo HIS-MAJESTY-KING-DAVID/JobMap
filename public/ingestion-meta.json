@@ -1,69 +1,69 @@
 {
-  "generatedAt": "2026-11-19T07:35:01.165Z",
-  "jobs": 5430,
+  "generatedAt": "2026-11-19T20:44:31.569Z",
+  "jobs": 5265,
   "sources": [
     {
       "id": "fne-cameroon",
       "label": "FNE — Fonds National de l'Emploi",
-      "status": "error",
-      "error": "HTTP 403",
-      "durationMs": 7680
+      "status": "ok",
+      "fetched": 12,
+      "durationMs": 45992
     },
     {
       "id": "greenhouse-stripe",
       "label": "Stripe via Greenhouse",
       "status": "ok",
-      "fetched": 784,
-      "durationMs": 421
+      "fetched": 771,
+      "durationMs": 568
     },
     {
       "id": "reliefweb-cameroon-rss",
       "label": "ReliefWeb jobs — Cameroon (RSS)",
-      "status": "error",
-      "error": "HTTP 406",
-      "durationMs": 1514
+      "status": "ok",
+      "fetched": 8,
+      "durationMs": 278
     },
     {
       "id": "weworkremotely-global-rss",
       "label": "We Work Remotely RSS — Global",
       "status": "ok",
-      "fetched": 95,
-      "durationMs": 820
+      "fetched": 94,
+      "durationMs": 442
     },
     {
       "id": "jobicy-api",
       "label": "Jobicy Remote Jobs API",
       "status": "ok",
       "fetched": 100,
-      "durationMs": 68
+      "durationMs": 269
     },
     {
       "id": "remotive-api",
       "label": "Remotive Remote Jobs API",
       "status": "ok",
-      "fetched": 16,
-      "durationMs": 73
+      "fetched": 15,
+      "durationMs": 190
     },
     {
       "id": "remoteok-api",
       "label": "Remote OK public API",
       "status": "ok",
       "fetched": 97,
-      "durationMs": 388
+      "durationMs": 1014
     },
     {
       "id": "hackernews-jobs",
       "label": "Hacker News Jobs",
       "status": "ok",
       "fetched": 20,
-      "durationMs": 117
+      "durationMs": 5501
     },
     {
       "id": "ashby-preply",
       "label": "Preply Careers (Ashby ATS)",
       "status": "ok",
-      "fetched": 123,
-      "durationMs": 96
+      "fetched": 121,
+      "durationMs": 150
     }
   ]
 }
